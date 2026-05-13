@@ -1,220 +1,286 @@
-# FamilyTool — Family Finance Organiser
+# FamilyTool
 
-A local-first family financial operating system that replaces manual spreadsheet workflows. Imports ABN AMRO bank exports, categorises transactions using AI, tracks budgets and savings, and provides monthly financial visibility with drilldown analytics.
+A local-first financial organiser for importing transaction exports, categorising spending, tracking budgets and savings, and understanding monthly financial trends.
 
-## Why
+Built for people who currently manage finances in spreadsheets and want a calmer, more automated workflow without relying on cloud-based finance platforms.
 
-- Replace repetitive spreadsheet work with automation
-- AI-assisted categorisation that learns from corrections
-- Privacy-focused: all data stays local (SQLite)
-- Monthly rhythm: understand your finances in under 15 minutes
+---
 
-## Architecture
+# Features
 
-```
+## Local-first
+
+- SQLite-based local storage
+- Financial data stays on your machine
+- No cloud sync required
+- Works offline
+
+## Transaction Import
+
+- Import `.TAB`, `.TXT`, and `.XLS` transaction exports
+- Preview imports before committing
+- Automatic duplicate detection
+- Pre-import backups
+
+## AI-Assisted Categorisation
+
+- Categorises transactions using OpenAI models
+- Learns from manual corrections
+- Confidence scoring for every categorisation
+- Falls back gracefully when AI is unavailable
+
+## Budgeting & Forecasting
+
+- Monthly spending overview
+- Savings and investment tracking
+- Fixed vs variable cost analysis
+- Rolling forecast projections
+
+## Drilldown Analytics
+
+Navigate from:
+- monthly overview
+- → category breakdown
+- → merchant breakdown
+- → individual transactions
+
+## Review Workflow
+
+- Correct uncategorised transactions
+- Save corrections as reusable rules
+- Reduce manual work over time
+
+---
+
+# Product Philosophy
+
+FamilyTool is designed to feel:
+
+- calm
+- practical
+- local-first
+- spreadsheet-friendly
+- understandable
+
+The system uses:
+- deterministic calculations for financial data
+- AI for categorisation, explanation, and summaries
+
+The goal is to help users understand monthly finances in a few minutes rather than maintain large spreadsheet systems.
+
+---
+
+# Tech Stack
+
+Frontend:
+- React
+- TypeScript
+- Tailwind CSS
+- shadcn/ui
+- Recharts
+
+Backend:
+- Express
+- TypeScript
+- SQLite (`better-sqlite3`)
+
+AI:
+- OpenAI API
+
+---
+
+# Project Structure
+
+```text
 FamilyTool/
-├── client/           # React + Vite + Tailwind SPA
-├── server/           # Express + TypeScript API
-│   ├── src/
-│   │   ├── routes/   # API endpoints
-│   │   ├── services/ # Business logic
-│   │   ├── db/       # SQLite schema & migrations
-│   │   └── ai/       # OpenAI integration
-│   └── tests/        # Vitest test suite
-├── data/             # SQLite database + backups (gitignored)
-└── samples/          # Test fixtures
+├── client/              # React + Vite frontend
+├── server/              # Express API + business logic
+├── data/                # SQLite database + backups
+├── samples/             # Import test fixtures
+└── docs/                # Design specs and plans
 ```
 
-**Stack:** React 18, TypeScript, Tailwind CSS, Express, better-sqlite3, OpenAI API, Recharts
+---
 
-## Quick Start
+# Quick Start
 
-### Prerequisites
+## Prerequisites
 
 - Node.js 20+
 - npm 9+
 
-### Setup
+## Installation
 
 ```bash
-# Clone
-git clone https://github.com/TeslaP/FamilyTool.git
+git clone <repo-url>
 cd FamilyTool
 
-# Install
 npm install
-
-# Configure
-cp .env.example .env
-# Edit .env with your credentials (see Configuration below)
-
-# Run
-npm run dev
 ```
 
-Server starts on `http://localhost:3001`, client on `http://localhost:5173`.
+## Configuration
 
-### Configuration
+```bash
+cp .env.example .env
+```
 
-Create a `.env` file from `.env.example`:
+Edit `.env`:
 
 ```env
-# Auth (required)
+# Authentication
 AUTH_USERNAME=admin
-AUTH_PASSWORD=your-password-here
-JWT_SECRET=generate-a-random-string
+AUTH_PASSWORD=your-password
+JWT_SECRET=change-this
 
-# OpenAI (optional — app works without it)
+# OpenAI (optional)
 OPENAI_API_KEY=sk-...
 
 # Database
 DB_PATH=./data/familytool.sqlite
 
-# Debug
+# Debugging
 DEBUG_MODE=false
 ```
 
-The app works fully without an OpenAI key — transactions just remain uncategorised until you manually categorise them.
+OpenAI is optional. The app works without it, but uncategorised transactions must be reviewed manually.
 
-## Features
+## Run Development Environment
 
-### Import Pipeline
-
-- Upload ABN AMRO `.TAB` or `.XLS` bank exports
-- Preview before committing (see duplicates, estimated categories)
-- Automatic duplicate detection (fingerprint-based)
-- Pre-import database backup
-
-### AI Categorisation
-
-- Batch categorisation using gpt-4o-mini (~$0.01-0.03 per import)
-- Strict validation: AI can only select from allowed categories
-- Results cached to avoid repeat API calls
-- Confidence scoring on every categorisation
-- Graceful fallback when AI is unavailable
-
-### Rule Learning
-
-- Correct a transaction → save as a categorisation rule
-- Rules are checked before AI on every import
-- Over time, AI calls shrink as rules grow
-- Three match types: exact, contains, regex
-
-### Hierarchical Categories
-
-```
-Food
-├── Groceries
-├── Dining
-└── Coffee
-
-Housing
-├── Mortgage
-├── Utilities
-└── Insurance
+```bash
+npm run dev
 ```
 
-Income, expense, and transfer categories with rollup analytics.
+Frontend:
+- http://localhost:5173
 
-### Recalculation Engine
+Backend:
+- http://localhost:3001
 
-- Monthly aggregates automatically maintained
-- Any edit triggers recalculation of affected months
-- Dashboard metrics always reflect current data
+---
 
-### Monthly Summary
+# Import Flow
 
-- AI-generated plain-language narrative of your month
-- Calm, practical, non-judgemental tone
-- Compares to previous month
+```text
+Upload file
+→ Preview transactions
+→ Detect duplicates
+→ Estimate categories
+→ Confirm import
+→ Review unknown transactions
+```
 
-## API Endpoints
+Supported formats:
+- `.TAB`
+- `.TXT`
+- `.XLS`
+
+Additional formats may be added later.
+
+---
+
+# AI Features
+
+## Categorisation
+
+Unknown transactions are grouped into batches and categorised using OpenAI models.
+
+The system:
+- validates all AI responses
+- restricts AI to allowed categories
+- caches categorisation results
+- learns from manual corrections
+
+## Monthly Summaries
+
+Generate plain-language monthly financial summaries, including:
+- spending changes
+- savings progress
+- unusual categories
+- month-over-month comparisons
+
+Tone is intentionally:
+- calm
+- practical
+- non-judgemental
+
+---
+
+# Security & Privacy
+
+- Backend runs locally
+- OpenAI keys remain server-side
+- Database stored locally
+- Automatic backups before imports
+- Debug logging disabled by default
+
+Recommended:
+- use a strong password
+- keep `.env` private
+- exclude `/data` from backups/sync services if desired
+
+---
+
+# API Endpoints
 
 | Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/login` | Login, returns JWT |
+|---|---|---|
+| POST | `/api/auth/login` | Login |
 | GET | `/api/health` | Health check |
-| GET | `/api/categories` | List all categories (auth required) |
-| POST | `/api/import/preview` | Upload file, get preview |
-| POST | `/api/import/confirm` | Commit import to database |
-| GET | `/api/transactions` | List transactions (filterable) |
+| POST | `/api/import/preview` | Preview import |
+| POST | `/api/import/confirm` | Commit import |
+| GET | `/api/transactions` | List transactions |
 | PATCH | `/api/transactions/:id` | Update transaction |
-| POST | `/api/transactions/:id/create-rule` | Create rule from correction |
-| POST | `/api/summary/generate` | Generate AI monthly summary |
+| POST | `/api/summary/generate` | Generate AI summary |
 
-All endpoints except `/api/auth/login` and `/api/health` require `Authorization: Bearer <token>` header.
+---
 
-## Testing
+# Development
+
+## Run all tests
 
 ```bash
-# Run all tests
 npm test
-
-# Run with watch mode
-npm test -w server
-
-# Run specific test file
-npm test -w server -- --run parser
 ```
 
-## Bank Export Formats
-
-### ABN AMRO TAB
-
-Tab-separated, no header, 8 fields. Uses comma as decimal separator (`1282,61`).
-
-```
-accountNumber  currency  transactionDate(YYYYMMDD)  startBalance  endBalance  valueDate(YYYYMMDD)  amount  description
-```
-
-### ABN AMRO XLS
-
-Same data with header row and dot decimals. Columns: accountNumber, mutationcode, transactiondate, valuedate, startsaldo, endsaldo, amount, description.
-
-## Transaction Direction
-
-Every transaction has an explicit direction:
-- **income** — salary, refunds, interest
-- **expense** — purchases, bills, subscriptions
-- **transfer** — between own accounts, credit card payments, savings moves
-
-Transfers don't count in income/expense analytics.
-
-## Backup Strategy
-
-- Automatic SQLite snapshot before every import
-- Timestamped: `backup-YYYY-MM-DD-HHmmss.sqlite`
-- Keeps last 10 backups, deletes older ones
-- Stored in `data/backups/`
-
-## Development
+## Run backend tests
 
 ```bash
-# Start both server and client
-npm run dev
-
-# Server only
-npm run dev -w server
-
-# Client only
-npm run dev -w client
-
-# Build client for production
-npm run build
+npm test -w server
 ```
 
-## Project Status
+## Start frontend only
 
-- [x] Phase 1: Foundation (scaffolding, DB, auth, parsers, import pipeline)
-- [ ] Phase 2: AI & Recalculation (categoriser, aggregates, summaries, rule learning)
-- [ ] Phase 3: Frontend (dashboard, import UI, review queue, forecast)
+```bash
+npm run dev -w client
+```
 
-## Design Docs
+## Start backend only
 
-- [Design Spec](docs/superpowers/specs/2026-05-13-family-finance-organiser-design.md)
-- [Phase 1 Plan](docs/superpowers/plans/2026-05-13-phase1-foundation.md)
-- [Phase 2 Plan](docs/superpowers/plans/2026-05-14-phase2-ai-recalculation.md)
+```bash
+npm run dev -w server
+```
 
-## License
+---
+
+# Roadmap
+
+## V1
+- transaction imports
+- categorisation
+- review queue
+- dashboard
+- forecasting
+- AI summaries
+
+## Future
+- additional import formats
+- improved forecasting
+- multi-account support
+- desktop packaging
+- optional encrypted backups
+
+---
+
+# License
 
 Private project.
