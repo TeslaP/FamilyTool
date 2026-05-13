@@ -8,6 +8,16 @@
 
 **Tech Stack:** React 18, TypeScript, React Router 6, Tailwind CSS, shadcn/ui, Recharts, Vite
 
+## Visual Design Decisions (locked)
+
+- **Navigation:** Compact icon rail (~48px wide), dark stone background (#1c1917), icon-only with tooltips. No text labels.
+- **Colour palette:** Warm Stone & Paper — off-white bg (#fafaf9), white cards with #e7e5e4 borders, stone-spectrum chart colours (#57534e, #78716c, #a8a29e, #d6d3d1). Positive green #16a34a, warning amber #f59e0b, negative red #dc2626. No accent colour.
+- **Dashboard:** Dual-mode toggle (Overview / Detail) at top-right. Overview = hero net cashflow + full-width chart. Detail = full cockpit grid.
+- **Import:** 3-step wizard (Upload → Preview → Done) with step indicator.
+- **Review:** Pure spreadsheet table with inline dropdowns. Amber highlight for uncategorised. ~1000 seeded rules means queue is near-empty from day 1.
+- **Forecast:** Hero "remaining after fixed costs" at top, three editable columns below (fixed, variable, savings). Live recalculation on edit.
+- **Corners:** 6-8px for cards, 4px for inputs. Light mode only.
+
 ---
 
 ## File Structure (Phase 3)
@@ -392,34 +402,34 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center bg-stone-50">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-6 text-center">Family Finance</h1>
-        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border space-y-4">
+        <h1 className="text-2xl font-semibold text-stone-900 mb-6 text-center">Family Finance</h1>
+        <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-sm border border-stone-200 space-y-4">
           {error && <p className="text-sm text-red-600">{error}</p>}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Username</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full px-3 py-2 border border-stone-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+            <label className="block text-sm font-medium text-stone-700 mb-1">Password</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              className="w-full px-3 py-2 border border-stone-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-stone-900"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-gray-900 text-white rounded-md text-sm font-medium hover:bg-gray-800 disabled:opacity-50"
+            className="w-full py-2 bg-stone-900 text-white rounded-md text-sm font-medium hover:bg-stone-800 disabled:opacity-50"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
@@ -436,6 +446,7 @@ export function Login() {
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
+import { cn } from "../lib/utils";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -448,37 +459,34 @@ export function Layout() {
   const { logout } = useAuth();
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <aside className="w-56 bg-white border-r flex flex-col">
-        <div className="p-4 border-b">
-          <h1 className="font-semibold text-gray-900">Family Finance</h1>
-        </div>
-        <nav className="flex-1 p-2 space-y-1">
+    <div className="min-h-screen flex bg-stone-50">
+      <aside className="w-[52px] bg-stone-950 flex flex-col items-center py-3 gap-2 flex-shrink-0">
+        <div className="w-7 h-7 bg-stone-800 rounded-md mb-2" />
+        <nav className="flex-1 flex flex-col items-center gap-1">
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}
               end={to === "/"}
+              title={label}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-2 rounded-md text-sm ${
-                  isActive ? "bg-gray-100 text-gray-900 font-medium" : "text-gray-600 hover:bg-gray-50"
-                }`
+                cn(
+                  "w-8 h-8 flex items-center justify-center rounded-md transition-colors",
+                  isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800"
+                )
               }
             >
-              <Icon size={16} />
-              {label}
+              <Icon size={18} />
             </NavLink>
           ))}
         </nav>
-        <div className="p-2 border-t">
-          <button
-            onClick={logout}
-            className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-gray-600 hover:bg-gray-50 w-full"
-          >
-            <LogOut size={16} />
-            Sign out
-          </button>
-        </div>
+        <button
+          onClick={logout}
+          title="Sign out"
+          className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800"
+        >
+          <LogOut size={16} />
+        </button>
       </aside>
       <main className="flex-1 overflow-auto">
         <Outlet />
