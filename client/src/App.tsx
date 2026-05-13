@@ -1,19 +1,46 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { Layout } from "./components/Layout";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { Import } from "./pages/Import";
+import { Review } from "./pages/Review";
+import { Forecast } from "./pages/Forecast";
 
-function Placeholder({ name }: { name: string }) {
-  return <div className="p-8 text-lg">{name} — coming soon</div>;
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function AppRoutes() {
+  const { isAuthenticated } = useAuth();
+
+  return (
+    <Routes>
+      <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+      <Route
+        element={
+          <ProtectedRoute>
+            <Layout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/import" element={<Import />} />
+        <Route path="/review" element={<Review />} />
+        <Route path="/forecast" element={<Forecast />} />
+      </Route>
+    </Routes>
+  );
 }
 
 export function App() {
   return (
     <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<Placeholder name="Dashboard" />} />
-        <Route path="/import" element={<Placeholder name="Import" />} />
-        <Route path="/review" element={<Placeholder name="Review" />} />
-        <Route path="/forecast" element={<Placeholder name="Forecast" />} />
-        <Route path="/login" element={<Placeholder name="Login" />} />
-      </Routes>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
     </BrowserRouter>
   );
 }
