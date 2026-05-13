@@ -1,9 +1,11 @@
 import { Router } from "express";
 import type Database from "better-sqlite3";
 import type { Multer } from "multer";
+import { dirname, join } from "path";
 import { parseTabFile, parseXlsFile, type ParsedTransaction } from "../services/parser.js";
 import { generateFingerprint } from "../services/fingerprint.js";
 import { matchRules } from "../services/rules.js";
+import { createBackup, cleanOldBackups } from "../services/backup.js";
 
 interface PreviewTransaction extends ParsedTransaction {
   fingerprint: string;
@@ -16,7 +18,7 @@ interface PreviewTransaction extends ParsedTransaction {
   } | null;
 }
 
-export function createImportRouter(db: Database.Database, upload: Multer): Router {
+export function createImportRouter(db: Database.Database, upload: Multer, dbPath: string): Router {
   const router = Router();
 
   router.post("/preview", upload.single("file"), (req, res) => {
@@ -89,6 +91,14 @@ export function createImportRouter(db: Database.Database, upload: Multer): Route
     if (!fileName || !transactions) {
       res.status(400).json({ error: "fileName and transactions required" });
       return;
+    }
+
+    const backupDir = join(dirname(dbPath), "backups");
+    try {
+      createBackup(dbPath, backupDir);
+      cleanOldBackups(backupDir, 10);
+    } catch {
+      // Backup failure should not block import
     }
 
     let imported = 0;

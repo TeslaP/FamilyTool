@@ -33,7 +33,7 @@ function createImportTestApp() {
   const upload = multer({ storage: multer.memoryStorage() });
 
   app.use("/api/auth", createAuthRouter(TEST_CONFIG));
-  app.use("/api/import", authMiddleware(TEST_CONFIG.jwtSecret), createImportRouter(db, upload));
+  app.use("/api/import", authMiddleware(TEST_CONFIG.jwtSecret), createImportRouter(db, upload, ":memory:"));
 
   return { app, db };
 }

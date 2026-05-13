@@ -27,7 +27,7 @@ export function createApp() {
   app.use("/api/categories", authMiddleware(config.jwtSecret), createCategoriesRouter(db));
 
   const upload = multer({ storage: multer.memoryStorage() });
-  app.use("/api/import", authMiddleware(config.jwtSecret), createImportRouter(db, upload));
+  app.use("/api/import", authMiddleware(config.jwtSecret), createImportRouter(db, upload, config.dbPath));
 
   return app;
 }
