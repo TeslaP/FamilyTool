@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -8,10 +8,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { LayoutDashboard } from "lucide-react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { MonthSelector } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
+import { EmptyState } from "../components/EmptyState";
 import { formatCurrency, getCurrentMonth, cn } from "../lib/utils";
 
 export function Dashboard() {
@@ -134,10 +136,19 @@ export function Dashboard() {
       </div>
 
       {isEmpty ? (
-        <div className="flex flex-col items-center justify-center py-20 text-stone-400">
-          <p className="text-lg">No transactions for this month</p>
-          <p className="text-sm mt-1">Import a bank statement to get started</p>
-        </div>
+        <EmptyState
+          icon={<LayoutDashboard size={32} />}
+          title="No transactions this month"
+          description="Import a bank export to see your financial overview here."
+          action={
+            <Link
+              to="/import"
+              className="inline-flex px-4 py-2 text-sm bg-stone-900 text-white rounded-md hover:bg-stone-800"
+            >
+              Import transactions
+            </Link>
+          }
+        />
       ) : mode === "overview" ? (
         <OverviewMode
           netCashflow={netCashflow}
