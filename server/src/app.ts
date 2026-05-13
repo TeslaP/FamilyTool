@@ -7,6 +7,7 @@ import { loadConfig } from "./config.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createCategoriesRouter } from "./routes/categories.js";
 import { createImportRouter } from "./routes/import.js";
+import { createTransactionsRouter } from "./routes/transactions.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 export function createApp() {
@@ -28,6 +29,7 @@ export function createApp() {
 
   const upload = multer({ storage: multer.memoryStorage() });
   app.use("/api/import", authMiddleware(config.jwtSecret), createImportRouter(db, upload, config.dbPath));
+  app.use("/api/transactions", authMiddleware(config.jwtSecret), createTransactionsRouter(db));
 
   return app;
 }
