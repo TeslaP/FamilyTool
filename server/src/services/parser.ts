@@ -1,3 +1,5 @@
+import XLSX from "xlsx";
+
 export interface ParsedTransaction {
   transactionDate: string;
   valueDate: string;
@@ -46,5 +48,26 @@ export function parseTabFile(content: string): ParsedTransaction[] {
 }
 
 export function parseXlsFile(buffer: Buffer): ParsedTransaction[] {
-  throw new Error("Not implemented");
+  const workbook = XLSX.read(buffer, { type: "buffer" });
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet, { raw: false });
+
+  const transactions: ParsedTransaction[] = [];
+
+  for (const row of rows) {
+    const rawAmount = parseFloat(row["amount"]);
+    const direction = detectDirection(rawAmount);
+
+    transactions.push({
+      transactionDate: formatDate(row["transactiondate"]),
+      valueDate: formatDate(row["valuedate"]),
+      amount: Math.abs(rawAmount),
+      direction,
+      startBalance: parseFloat(row["startsaldo"]),
+      endBalance: parseFloat(row["endsaldo"]),
+      rawDescription: (row["description"] || "").trim(),
+    });
+  }
+
+  return transactions;
 }
