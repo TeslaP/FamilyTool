@@ -82,3 +82,13 @@ CREATE TABLE IF NOT EXISTS savings_goals (
   savingsActual REAL NOT NULL DEFAULT 0.0,
   UNIQUE(year, month)
 );
+
+CREATE TABLE IF NOT EXISTS ai_cache (
+  descriptionHash TEXT PRIMARY KEY,
+  merchantName TEXT NOT NULL,
+  categoryId INTEGER NOT NULL,
+  direction TEXT NOT NULL,
+  isRecurring INTEGER NOT NULL DEFAULT 0,
+  confidence REAL NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+);
