@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -18,6 +19,7 @@ export function Dashboard() {
   const [mode, setMode] = useState<"overview" | "detail">("overview");
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const navigate = useNavigate();
 
   const { data: transactions, loading, error } = useApi(
     () => api.getTransactions({ month }),
@@ -39,16 +41,24 @@ export function Dashboard() {
     totalIncome > 0 ? Math.round((netCashflow / totalIncome) * 100) : 0;
 
   // Category chart data
-  const categoryMap = new Map(categories?.map((c) => [c.id, c.name]) ?? []);
-  const categoryTotals = new Map<string, number>();
+  const categoryTotals = new Map<string, { amount: number; id: number }>();
   transactions
     ?.filter((t) => t.direction === "expense" && t.categoryId)
     .forEach((t) => {
-      const name = categoryMap.get(t.categoryId!) || "Other";
-      categoryTotals.set(name, (categoryTotals.get(name) || 0) + t.amount);
+      const cat = categories?.find((c) => c.id === t.categoryId);
+      if (!cat) return;
+      // Use the parent category if there is one, otherwise the category itself
+      const parentCat = cat.parentId ? categories?.find((c) => c.id === cat.parentId) : cat;
+      const name = parentCat?.name || cat.name;
+      const id = parentCat?.id || cat.id;
+      const existing = categoryTotals.get(name);
+      categoryTotals.set(name, {
+        amount: (existing?.amount || 0) + t.amount,
+        id,
+      });
     });
   const chartData = Array.from(categoryTotals.entries())
-    .map(([name, amount]) => ({ name, amount: Math.round(amount) }))
+    .map(([name, { amount, id }]) => ({ name, amount: Math.round(amount), id }))
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 8);
 
@@ -135,6 +145,8 @@ export function Dashboard() {
           totalExpenses={totalExpenses}
           savingsRate={savingsRate}
           chartData={chartData}
+          month={month}
+          onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
       ) : (
         <DetailMode
@@ -147,6 +159,8 @@ export function Dashboard() {
           summary={summary}
           summaryLoading={summaryLoading}
           onGenerateSummary={handleGenerateSummary}
+          month={month}
+          onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
       )}
     </div>
@@ -161,12 +175,16 @@ function OverviewMode({
   totalExpenses,
   savingsRate,
   chartData,
+  month,
+  onCategoryClick,
 }: {
   netCashflow: number;
   totalIncome: number;
   totalExpenses: number;
   savingsRate: number;
-  chartData: { name: string; amount: number }[];
+  chartData: { name: string; amount: number; id: number }[];
+  month: string;
+  onCategoryClick: (id: number) => void;
 }) {
   return (
     <div className="space-y-8">
@@ -209,7 +227,15 @@ function OverviewMode({
               <Tooltip
                 formatter={(value) => [formatCurrency(Number(value)), "Amount"]}
               />
-              <Bar dataKey="amount" fill="#57534e" radius={[0, 4, 4, 0]} />
+              <Bar
+                dataKey="amount"
+                fill="#57534e"
+                radius={[0, 4, 4, 0]}
+                cursor="pointer"
+                onClick={(data: any) => {
+                  if (data?.id) onCategoryClick(data.id);
+                }}
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -230,16 +256,20 @@ function DetailMode({
   summary,
   summaryLoading,
   onGenerateSummary,
+  month,
+  onCategoryClick,
 }: {
   totalIncome: number;
   totalExpenses: number;
   netCashflow: number;
   savingsRate: number;
-  chartData: { name: string; amount: number }[];
+  chartData: { name: string; amount: number; id: number }[];
   topMerchants: [string, number][];
   summary: string | null;
   summaryLoading: boolean;
   onGenerateSummary: () => void;
+  month: string;
+  onCategoryClick: (id: number) => void;
 }) {
   return (
     <div className="space-y-6">
@@ -279,7 +309,15 @@ function DetailMode({
                 <Tooltip
                   formatter={(value) => [formatCurrency(Number(value)), "Amount"]}
                 />
-                <Bar dataKey="amount" fill="#57534e" radius={[0, 4, 4, 0]} />
+                <Bar
+                  dataKey="amount"
+                  fill="#57534e"
+                  radius={[0, 4, 4, 0]}
+                  cursor="pointer"
+                  onClick={(data: any) => {
+                    if (data?.id) onCategoryClick(data.id);
+                  }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
