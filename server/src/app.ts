@@ -1,10 +1,12 @@
 import express from "express";
 import cors from "cors";
+import multer from "multer";
 import { getDb } from "./db/connection.js";
 import { runMigrations, seedCategories } from "./db/migrate.js";
 import { loadConfig } from "./config.js";
 import { createAuthRouter } from "./routes/auth.js";
 import { createCategoriesRouter } from "./routes/categories.js";
+import { createImportRouter } from "./routes/import.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 export function createApp() {
@@ -23,6 +25,9 @@ export function createApp() {
 
   app.use("/api/auth", createAuthRouter(config));
   app.use("/api/categories", authMiddleware(config.jwtSecret), createCategoriesRouter(db));
+
+  const upload = multer({ storage: multer.memoryStorage() });
+  app.use("/api/import", authMiddleware(config.jwtSecret), createImportRouter(db, upload));
 
   return app;
 }
