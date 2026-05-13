@@ -6,6 +6,8 @@ import { parseTabFile, parseXlsFile, type ParsedTransaction } from "../services/
 import { generateFingerprint } from "../services/fingerprint.js";
 import { matchRules } from "../services/rules.js";
 import { createBackup, cleanOldBackups } from "../services/backup.js";
+import { categoriseTransactions } from "../ai/categoriser.js";
+import { recalculateAffectedMonths } from "../services/recalculation.js";
 
 interface PreviewTransaction extends ParsedTransaction {
   fingerprint: string;
@@ -82,7 +84,7 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
     });
   });
 
-  router.post("/confirm", (req, res) => {
+  router.post("/confirm", async (req, res) => {
     const { fileName, transactions } = req.body as {
       fileName: string;
       transactions: PreviewTransaction[];
@@ -103,6 +105,7 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
 
     let imported = 0;
     let duplicatesSkipped = 0;
+    let fileId = 0;
 
     const insertFile = db.prepare(
       "INSERT INTO import_files (fileName, rowCount, duplicateCount) VALUES (?, ?, ?)"
@@ -124,7 +127,7 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       });
 
       const fileResult = insertFile.run(fileName, nonDuplicates.length, duplicatesSkipped);
-      const fileId = Number(fileResult.lastInsertRowid);
+      fileId = Number(fileResult.lastInsertRowid);
 
       for (const t of nonDuplicates) {
         const merchantName = t.ruleMatch?.merchantName || null;
@@ -154,9 +157,67 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       }
     })();
 
+    // AI categorisation for uncategorised transactions
+    const uncategorised = db.prepare(
+      "SELECT id, rawDescription FROM transactions WHERE sourceFileId = ? AND categorisationMethod IS NULL"
+    ).all(fileId) as { id: number; rawDescription: string }[];
+
+    let aiCategorised = 0;
+    let aiFailed = 0;
+
+    if (uncategorised.length > 0) {
+      const aiInput = uncategorised.map((t, i) => ({ index: i, rawDescription: t.rawDescription }));
+
+      try {
+        const aiResult = await categoriseTransactions(db, aiInput);
+
+        // Apply AI results
+        const updateStmt = db.prepare(
+          "UPDATE transactions SET merchantName = ?, categoryId = ?, direction = ?, isRecurring = ?, confidence = ?, categorisationMethod = 'ai' WHERE id = ?"
+        );
+
+        for (const [index, result] of aiResult.results) {
+          const txId = uncategorised[index].id;
+          updateStmt.run(result.merchantName, result.categoryId, result.direction, result.isRecurring ? 1 : 0, result.confidence, txId);
+          aiCategorised++;
+        }
+
+        // Apply cached results
+        for (const [index, cached] of aiResult.cached) {
+          const txId = uncategorised[index].id;
+          updateStmt.run(cached.merchantName, cached.categoryId, cached.direction, cached.isRecurring ? 1 : 0, cached.confidence, txId);
+          aiCategorised++;
+        }
+
+        // Mark failed
+        const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
+        for (const index of aiResult.failed) {
+          const txId = uncategorised[index].id;
+          failStmt.run(txId);
+          aiFailed++;
+        }
+      } catch {
+        // AI failure should not break the import
+        const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
+        for (const t of uncategorised) {
+          failStmt.run(t.id);
+        }
+        aiFailed = uncategorised.length;
+      }
+
+      // Recalculate affected months
+      const dates = db.prepare("SELECT DISTINCT transactionDate FROM transactions WHERE sourceFileId = ?").all(fileId) as { transactionDate: string }[];
+      recalculateAffectedMonths(db, dates.map((d) => d.transactionDate));
+    }
+
+    // Update import file stats
+    db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(aiCategorised + aiFailed, fileId);
+
     res.json({
       imported,
       duplicatesSkipped,
+      aiCategorised,
+      aiFailed,
       fileName,
     });
   });
