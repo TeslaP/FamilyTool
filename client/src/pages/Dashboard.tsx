@@ -14,7 +14,7 @@ import { useApi } from "../hooks/useApi";
 import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
-import { formatCurrency, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
+import { formatCurrency, formatMonth, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
 
 export function Dashboard() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -224,7 +224,7 @@ function OverviewMode({
       {/* Hero section */}
       <div className="text-center mb-10">
         <p className="text-lg text-stone-400 mb-4">
-          Available this month
+          Available in {formatMonth(month)}
         </p>
         <p className={cn("text-[6.5rem] font-light tracking-tight leading-none", netCashflow >= 0 ? "text-green-700" : "text-red-600")}>
           {formatCurrency(netCashflow)}
