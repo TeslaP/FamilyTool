@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
-import { MonthSelector, type MonthRange } from "../components/MonthSelector";
+import { useMonthParam } from "../hooks/useMonthParam";
+import { MonthSelector } from "../components/MonthSelector";
 import { CategoryDropdown } from "../components/CategoryDropdown";
-import { formatCurrency, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
+import { formatCurrency, getNextMonth, cn } from "../lib/utils";
 import { CheckSquare, Bookmark, Trash2 } from "lucide-react";
 import type { Transaction } from "../types";
 
@@ -38,8 +39,7 @@ function ConfirmModal({
 }
 
 export function Review() {
-  const [month, setMonth] = useState(getCurrentMonth());
-  const [range, setRange] = useState<MonthRange | null>(null);
+  const { month, range, setMonth, setRange } = useMonthParam();
   const [viewMode, setViewMode] = useState<"review" | "all">("review");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [editingMerchant, setEditingMerchant] = useState<number | null>(null);

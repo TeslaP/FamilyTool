@@ -17,19 +17,23 @@ interface Props {
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-function getPresets() {
+function getPresets(viewYear: number) {
   const current = getCurrentMonth();
+  const currentYearNum = parseInt(current.split("-")[0]);
   const last = getPreviousMonth(current);
   const m3 = getPreviousMonth(getPreviousMonth(last));
   const m6 = (() => { let m = current; for (let i = 0; i < 5; i++) m = getPreviousMonth(m); return m; })();
-  const yearStart = `${current.split("-")[0]}-01`;
 
   return [
     { label: "This month", from: current, to: current },
     { label: "Last month", from: last, to: last },
     { label: "Last 3 months", from: m3, to: current },
     { label: "Last 6 months", from: m6, to: current },
-    { label: "Year to date", from: yearStart, to: current },
+    {
+      label: "Year to date",
+      from: `${viewYear}-01`,
+      to: viewYear < currentYearNum ? `${viewYear}-12` : current,
+    },
   ];
 }
 
@@ -40,7 +44,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
 
   const currentMonthNum = parseInt(month.split("-")[1]);
   const currentYear = parseInt(month.split("-")[0]);
-  const presets = getPresets();
+  const presets = getPresets(viewYear);
 
   // Close on click outside
   useEffect(() => {

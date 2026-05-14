@@ -1,12 +1,12 @@
 import { useState, useMemo } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
+import { useMonthParam } from "../hooks/useMonthParam";
 import { formatCurrency, getCurrentMonth, getNextMonth, getPreviousMonth, cn } from "../lib/utils";
-import { MonthSelector, type MonthRange } from "../components/MonthSelector";
+import { MonthSelector } from "../components/MonthSelector";
 
 export function Forecast() {
-  const [selectedMonth, setSelectedMonth] = useState(getNextMonth(getCurrentMonth()));
-  const [range, setRange] = useState<MonthRange | null>(null);
+  const { month: selectedMonth, range, setMonth: setSelectedMonth, setRange } = useMonthParam(getNextMonth(getCurrentMonth()));
 
   // Fetch last 3 months of transactions relative to selectedMonth
   const month1 = getPreviousMonth(selectedMonth);

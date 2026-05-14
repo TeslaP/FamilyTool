@@ -11,10 +11,11 @@ import {
 import { LayoutDashboard } from "lucide-react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
+import { useMonthParam } from "../hooks/useMonthParam";
 import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
-import { formatCurrency, formatMonth, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
+import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 
 // --- Weekly Pacing Section (fetches its own data) ---
 
@@ -120,8 +121,7 @@ function TrajectorySection({ year }: { year: number }) {
 }
 
 export function Dashboard() {
-  const [month, setMonth] = useState(getCurrentMonth());
-  const [range, setRange] = useState<MonthRange | null>(null);
+  const { month, range, setMonth, setRange } = useMonthParam();
   const [mode, setMode] = useState<"overview" | "detail">("overview");
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
