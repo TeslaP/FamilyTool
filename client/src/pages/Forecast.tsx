@@ -2,10 +2,11 @@ import { useState, useMemo } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { formatCurrency, getCurrentMonth, getNextMonth, getPreviousMonth, cn } from "../lib/utils";
-import { MonthSelector } from "../components/MonthSelector";
+import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 
 export function Forecast() {
   const [selectedMonth, setSelectedMonth] = useState(getNextMonth(getCurrentMonth()));
+  const [range, setRange] = useState<MonthRange | null>(null);
 
   // Fetch last 3 months of transactions relative to selectedMonth
   const month1 = getPreviousMonth(selectedMonth);
@@ -83,10 +84,21 @@ export function Forecast() {
     setOverrides(next);
   };
 
-  // Calculate totals
-  const totalFixed = fixedCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0);
-  const totalVariable = variableCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0);
-  const remaining = projectedIncome - totalFixed - totalVariable;
+  // Count months in the active period
+  const monthsInPeriod = range
+    ? (() => {
+        let count = 0;
+        let m = range.from;
+        while (m <= range.to) { count++; m = getNextMonth(m); }
+        return count;
+      })()
+    : 1;
+
+  // Calculate totals (multiplied by period length)
+  const totalFixed = fixedCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0) * monthsInPeriod;
+  const totalVariable = variableCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0) * monthsInPeriod;
+  const projectedIncomeTotal = projectedIncome * monthsInPeriod;
+  const remaining = projectedIncomeTotal - totalFixed - totalVariable;
 
   const loading = !tx1 || !categories;
 
@@ -107,19 +119,46 @@ export function Forecast() {
 
   return (
     <div className="p-6">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-semibold text-stone-900">Forecast</h2>
-        <MonthSelector month={selectedMonth} onChange={setSelectedMonth} />
+        <MonthSelector month={selectedMonth} range={range} onChange={setSelectedMonth} onRangeChange={setRange} />
+      </div>
+
+      {/* Period selector */}
+      <div className="flex items-center gap-2 mb-8">
+        <button
+          onClick={() => setRange(null)}
+          className={cn("px-3 py-1 text-sm rounded-md", !range ? "bg-stone-700 text-white" : "text-stone-500 hover:bg-stone-100")}
+        >
+          1 month
+        </button>
+        <button
+          onClick={() => setRange({ from: selectedMonth, to: getNextMonth(getNextMonth(selectedMonth)), label: "3 months" })}
+          className={cn("px-3 py-1 text-sm rounded-md", range?.label === "3 months" ? "bg-stone-700 text-white" : "text-stone-500 hover:bg-stone-100")}
+        >
+          3 months
+        </button>
+        <button
+          onClick={() => {
+            const eoy = `${selectedMonth.split("-")[0]}-12`;
+            setRange({ from: selectedMonth, to: eoy, label: "Till end of year" });
+          }}
+          className={cn("px-3 py-1 text-sm rounded-md", range?.label === "Till end of year" ? "bg-stone-700 text-white" : "text-stone-500 hover:bg-stone-100")}
+        >
+          Till EOY
+        </button>
       </div>
 
       {/* Hero remaining metric */}
       <div className="bg-white border border-stone-200 rounded-lg p-6 text-center mb-6">
-        <p className="text-sm text-stone-500 font-normal">Remaining after fixed costs</p>
+        <p className="text-sm text-stone-500 font-normal">
+          Remaining after fixed costs{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
+        </p>
         <p className={cn("text-4xl font-light mt-1", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
           {formatCurrency(remaining)}
         </p>
         <p className="text-xs text-stone-400 mt-1">
-          {formatCurrency(projectedIncome)} income − {formatCurrency(totalFixed)} fixed − {formatCurrency(totalVariable)} variable
+          {formatCurrency(projectedIncomeTotal)} income − {formatCurrency(totalFixed)} fixed − {formatCurrency(totalVariable)} variable
         </p>
       </div>
 
@@ -177,7 +216,7 @@ export function Forecast() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-stone-600">Projected income</span>
-              <span className="font-medium text-stone-900">{formatCurrency(projectedIncome)}</span>
+              <span className="font-medium text-stone-900">{formatCurrency(projectedIncomeTotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-stone-600">Fixed costs</span>
