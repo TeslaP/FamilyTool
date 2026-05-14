@@ -114,7 +114,7 @@ export function Dashboard() {
             className={cn(
               "px-4 py-2",
               mode === "overview"
-                ? "bg-stone-900 text-white"
+                ? "bg-stone-700 text-white"
                 : "bg-white text-stone-600"
             )}
             onClick={() => setMode("overview")}
@@ -125,7 +125,7 @@ export function Dashboard() {
             className={cn(
               "px-4 py-2",
               mode === "detail"
-                ? "bg-stone-900 text-white"
+                ? "bg-stone-700 text-white"
                 : "bg-white text-stone-600"
             )}
             onClick={() => setMode("detail")}

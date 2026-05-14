@@ -68,11 +68,11 @@ export function Import() {
       <div className="flex items-center justify-center mb-12">
         {steps.map((s, i) => (
           <div key={s.key} className="flex items-center">
-            {i > 0 && <div className={`w-16 h-px ${i <= currentIndex ? "bg-stone-900" : "bg-stone-200"}`} />}
+            {i > 0 && <div className={`w-16 h-px ${i <= currentIndex ? "bg-stone-700" : "bg-stone-200"}`} />}
             <div className="flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                i < currentIndex ? "bg-stone-900 text-white" :
-                i === currentIndex ? "bg-stone-900 text-white" :
+                i < currentIndex ? "bg-stone-700 text-white" :
+                i === currentIndex ? "bg-stone-700 text-white" :
                 "bg-stone-200 text-stone-500"
               }`}>
                 {i < currentIndex ? <Check size={16} /> : i + 1}

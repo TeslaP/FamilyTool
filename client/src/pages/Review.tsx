@@ -28,7 +28,7 @@ function ConfirmModal({
           <button onClick={onCancel} className="px-4 py-2 text-sm border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50">
             Cancel
           </button>
-          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-stone-900 text-white rounded-lg hover:bg-stone-800">
+          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-stone-700 text-white rounded-lg hover:bg-stone-600">
             Delete
           </button>
         </div>

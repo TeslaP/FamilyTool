@@ -105,7 +105,7 @@ export function MonthSelector({ month, onChange }: Props) {
                   disabled={isFuture}
                   className={cn(
                     "py-1.5 px-2 text-sm rounded-md transition-colors",
-                    isSelected ? "bg-stone-900 text-white" : "text-stone-700 hover:bg-stone-100",
+                    isSelected ? "bg-stone-700 text-white" : "text-stone-700 hover:bg-stone-100",
                     isFuture && "opacity-30 cursor-not-allowed"
                   )}
                 >
