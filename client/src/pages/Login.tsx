@@ -2,6 +2,13 @@ import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { Wallet } from "lucide-react";
 
+const backgrounds = [
+  "/backgrounds/mountains-fog.jpg",
+  "/backgrounds/autumn-lake.jpg",
+  "/backgrounds/misty-forest.jpg",
+  "/backgrounds/snow-peaks.jpg",
+];
+
 const welcomeMessages = [
   "Welcome back",
   "Your monthly finance space",
@@ -17,6 +24,9 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [bgImage] = useState(
+    () => backgrounds[Math.floor(Math.random() * backgrounds.length)]
+  );
   const [welcomeMessage] = useState(
     () => welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
   );
@@ -36,30 +46,35 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
-      {/* Ambient gradient background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-stone-100 via-stone-200/60 to-stone-300/40" />
-
-      {/* Decorative blurred shapes */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-stone-300/30 rounded-full blur-3xl" />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-stone-200/40 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-stone-100/50 rounded-full blur-3xl" />
+      {/* Background image */}
+      <div className="absolute inset-0">
+        <img
+          src={bgImage}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        {/* Soft overlay for readability — warm, desaturated */}
+        <div className="absolute inset-0 bg-stone-900/30 backdrop-blur-[2px]" />
+        {/* Additional warm tint */}
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-100/20 via-transparent to-stone-900/20" />
+      </div>
 
       {/* Login card */}
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <div className="w-14 h-14 bg-stone-800 rounded-2xl flex items-center justify-center shadow-lg">
+          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg border border-white/30">
             <Wallet size={24} className="text-white" />
           </div>
         </div>
 
         {/* Title */}
-        <h1 className="text-3xl font-light text-stone-800 text-center mb-2">
+        <h1 className="text-3xl font-light text-white text-center mb-2">
           Family Finance
         </h1>
 
         {/* Rotating welcome message */}
-        <p className="text-base text-stone-500 text-center mb-8">
+        <p className="text-base text-white/70 text-center mb-8">
           {welcomeMessage}
         </p>
 
