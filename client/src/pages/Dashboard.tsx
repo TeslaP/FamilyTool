@@ -17,6 +17,7 @@ import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { PageLoader } from "../components/PageLoader";
+import { FadeInSection } from "../components/FadeInSection";
 import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 
 // --- Weekly Pacing Section (fetches its own data) ---
@@ -420,20 +421,20 @@ function DetailMode({
     <div className="max-w-4xl mx-auto py-8 space-y-12">
 
       {/* Section 1: Monthly metrics (always shown) */}
-      <section>
+      <FadeInSection>
         <div className="grid grid-cols-4 gap-3">
           <MetricCard label="Income" value={formatCurrency(totalIncome)} />
           <MetricCard label="Expenses" value={formatCurrency(totalExpenses)} />
           <MetricCard label="Net" value={formatCurrency(netCashflow)} />
           <MetricCard label="Saved" value={`${savingsRate}%`} />
         </div>
-      </section>
+      </FadeInSection>
 
       {/* Section 2: Weekly Pacing (only for single month) */}
-      {isSingleMonth && <WeeklyPacingSection month={month} />}
+      {isSingleMonth && <FadeInSection><WeeklyPacingSection month={month} /></FadeInSection>}
 
       {/* Section 3: Category Breakdown */}
-      <section>
+      <FadeInSection>
         <h3 className="text-base font-medium text-stone-700 mb-4">Spending by category</h3>
         <div className="grid grid-cols-4 gap-3">
           {chartData.map(cat => (
@@ -443,11 +444,11 @@ function DetailMode({
             </button>
           ))}
         </div>
-      </section>
+      </FadeInSection>
 
       {/* Section 4: Top Merchants */}
       {topMerchants.length > 0 && (
-        <section>
+        <FadeInSection>
           <h3 className="text-base font-medium text-stone-700 mb-4">Top merchants</h3>
           <div className="bg-white border border-stone-100 rounded-xl divide-y divide-stone-50">
             {topMerchants.map(([name, amount]) => (
@@ -457,14 +458,14 @@ function DetailMode({
               </div>
             ))}
           </div>
-        </section>
+        </FadeInSection>
       )}
 
       {/* Section 5: Year Trajectory (always shown) */}
-      <TrajectorySection year={parseInt(month.split("-")[0])} />
+      <FadeInSection><TrajectorySection year={parseInt(month.split("-")[0])} /></FadeInSection>
 
       {/* Section 6: Observations */}
-      <section className="pb-12">
+      <FadeInSection className="pb-12">
         <h3 className="text-base font-medium text-stone-700 mb-4">Observations</h3>
         {summary ? (
           <p className="font-editorial text-lg text-stone-600 italic leading-relaxed">{summary}</p>
@@ -473,7 +474,7 @@ function DetailMode({
             {summaryLoading ? "Reflecting..." : "Reflect on this period →"}
           </button>
         )}
-      </section>
+      </FadeInSection>
     </div>
   );
 }
