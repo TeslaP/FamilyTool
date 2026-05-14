@@ -143,7 +143,7 @@ export function Dashboard() {
           action={
             <Link
               to="/import"
-              className="inline-flex px-4 py-2 text-sm bg-stone-900 text-white rounded-md hover:bg-stone-800"
+              className="inline-flex px-4 py-2 text-sm bg-stone-700 text-white rounded-md hover:bg-stone-600"
             >
               Import transactions
             </Link>
@@ -400,7 +400,7 @@ function DetailMode({
           <button
             onClick={onGenerateSummary}
             disabled={summaryLoading}
-            className="text-xs px-3 py-1 bg-stone-900 text-white rounded hover:bg-stone-800 disabled:opacity-50"
+            className="text-xs px-3 py-1 bg-stone-700 text-white rounded hover:bg-stone-600 disabled:opacity-50"
           >
             {summaryLoading ? "Generating..." : "Generate"}
           </button>

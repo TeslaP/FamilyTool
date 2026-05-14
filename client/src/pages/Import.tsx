@@ -136,7 +136,7 @@ export function Import() {
             <button
               onClick={handleConfirm}
               disabled={loading || preview.newCount === 0}
-              className="px-6 py-3 text-base bg-stone-900 text-white rounded-md hover:bg-stone-800 disabled:opacity-50"
+              className="px-6 py-3 text-base bg-stone-700 text-white rounded-md hover:bg-stone-600 disabled:opacity-50"
             >
               {loading ? "Importing..." : `Import ${preview.newCount} transactions`}
             </button>
@@ -161,7 +161,7 @@ export function Import() {
               Import another
             </button>
             {result.aiFailed > 0 && (
-              <Link to="/review" className="px-6 py-3 text-base bg-stone-900 text-white rounded-md hover:bg-stone-800">
+              <Link to="/review" className="px-6 py-3 text-base bg-stone-700 text-white rounded-md hover:bg-stone-600">
                 Review transactions
               </Link>
             )}

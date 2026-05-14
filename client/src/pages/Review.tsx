@@ -137,7 +137,7 @@ export function Review() {
           <button
             onClick={handleBulkAssign}
             disabled={!bulkCategory}
-            className="px-3 py-1 text-sm bg-stone-900 text-white rounded-md disabled:opacity-50"
+            className="px-3 py-1 text-sm bg-stone-700 text-white rounded-md hover:bg-stone-600 disabled:opacity-50"
           >
             Assign
           </button>
