@@ -18,7 +18,7 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
   return (
     <div className="relative group">
       {children}
-      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap pointer-events-none">
+      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap pointer-events-none">
         {label}
       </div>
     </div>
@@ -46,7 +46,7 @@ export function Layout() {
                 end={to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "relative w-9 h-9 flex items-center justify-center rounded-md transition-all duration-150",
+                    "relative w-9 h-9 flex items-center justify-center rounded-md transition-all duration-200",
                     isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800/80"
                   )
                 }
@@ -64,7 +64,7 @@ export function Layout() {
         <NavTooltip label="Sign out">
           <button
             onClick={logout}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80 transition-all duration-150"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80 transition-all duration-200"
           >
             <LogOut size={18} />
           </button>

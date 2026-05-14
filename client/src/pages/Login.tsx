@@ -117,7 +117,7 @@ export function Login() {
         {/* Logo */}
         <div
           className="flex justify-center mb-6 animate-entrance"
-          style={{ animationName: "fadeInScale", animationDuration: "0.8s", animationDelay: "0.2s" }}
+          style={{ animationName: "fadeInScale", animationDuration: "1.2s", animationDelay: "0.2s" }}
         >
           <HorizonLogo size={56} variant="light" className="backdrop-blur-sm shadow-lg border border-white/30" />
         </div>
@@ -125,7 +125,7 @@ export function Login() {
         {/* Time-aware greeting */}
         <h1
           className="text-3xl font-light text-white text-center mb-2 animate-entrance"
-          style={{ animationName: "fadeIn", animationDuration: "0.8s", animationDelay: "0.4s" }}
+          style={{ animationName: "fadeIn", animationDuration: "1.2s", animationDelay: "0.4s" }}
         >
           {getTimeGreeting()}
         </h1>
@@ -133,7 +133,7 @@ export function Login() {
         {/* Rotating welcome message */}
         <p
           className="text-base text-white/70 text-center mb-8 animate-entrance"
-          style={{ animationName: "fadeIn", animationDuration: "0.8s", animationDelay: "0.6s" }}
+          style={{ animationName: "fadeIn", animationDuration: "1.2s", animationDelay: "0.6s" }}
         >
           {welcomeMessage}
         </p>
@@ -142,7 +142,7 @@ export function Login() {
         <form
           onSubmit={handleSubmit}
           className="bg-white/60 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/40 space-y-5 animate-entrance"
-          style={{ animationName: "fadeInUp", animationDuration: "0.8s", animationDelay: "0.8s" }}
+          style={{ animationName: "fadeInUp", animationDuration: "1.2s", animationDelay: "0.8s" }}
         >
           {error && (
             <p className="text-sm text-red-600 text-center">{error}</p>

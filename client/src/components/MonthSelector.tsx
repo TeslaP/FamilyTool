@@ -88,14 +88,14 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
       <div className="flex items-center gap-3">
         <button
           onClick={() => { onChange(getPreviousMonth(month)); onRangeChange?.(null); }}
-          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
+          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors duration-200"
         >
           <ChevronLeft size={20} className="text-stone-400" />
         </button>
 
         <button
           onClick={() => { setViewYear(currentYear); setOpen(!open); }}
-          className="flex flex-col items-center gap-0.5 hover:bg-stone-100 px-3 py-1.5 rounded-md transition-colors min-w-[160px]"
+          className="flex flex-col items-center gap-0.5 hover:bg-stone-100 px-3 py-1.5 rounded-md transition-colors duration-200 min-w-[160px]"
         >
           <span className="flex items-center gap-1.5 text-base font-medium text-stone-900">
             {displayLabel}
@@ -108,7 +108,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
 
         <button
           onClick={() => { onChange(getNextMonth(month)); onRangeChange?.(null); }}
-          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors disabled:opacity-30"
+          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors duration-200 disabled:opacity-30"
           disabled={month >= getCurrentMonth()}
         >
           <ChevronRight size={20} className="text-stone-400" />
@@ -120,11 +120,11 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
         <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border border-stone-100 p-4 z-50 w-72">
           {/* Year selector */}
           <div className="flex items-center justify-between mb-3">
-            <button onClick={() => setViewYear(viewYear - 1)} className="p-1 hover:bg-stone-100 rounded">
+            <button onClick={() => setViewYear(viewYear - 1)} className="p-1 hover:bg-stone-100 rounded transition-colors duration-200">
               <ChevronLeft size={16} className="text-stone-500" />
             </button>
             <span className="text-sm font-medium text-stone-900">{viewYear}</span>
-            <button onClick={() => setViewYear(viewYear + 1)} className="p-1 hover:bg-stone-100 rounded">
+            <button onClick={() => setViewYear(viewYear + 1)} className="p-1 hover:bg-stone-100 rounded transition-colors duration-200">
               <ChevronRight size={16} className="text-stone-500" />
             </button>
           </div>
@@ -144,7 +144,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
                   onClick={() => selectMonth(monthNum)}
                   disabled={isFuture}
                   className={cn(
-                    "py-1.5 px-2 text-sm rounded-md transition-colors",
+                    "py-1.5 px-2 text-sm rounded-md transition-colors duration-200",
                     isSelected ? "bg-stone-700 text-white" :
                     isInRange ? "bg-stone-200 text-stone-900" :
                     "text-stone-700 hover:bg-stone-100",
@@ -164,7 +164,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
                 key={preset.label}
                 onClick={() => selectPreset(preset)}
                 className={cn(
-                  "w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors",
+                  "w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors duration-200",
                   range?.label === preset.label
                     ? "bg-stone-100 text-stone-900 font-medium"
                     : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"

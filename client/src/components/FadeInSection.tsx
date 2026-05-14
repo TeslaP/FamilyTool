@@ -15,7 +15,7 @@ export function FadeInSection({ children, className, delay = 0 }: Props) {
     <div
       ref={ref}
       className={cn(
-        "transition-all duration-700 ease-out",
+        "transition-all duration-[600ms] ease-out",
         isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4",
         className
       )}
