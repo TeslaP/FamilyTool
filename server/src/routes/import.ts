@@ -232,5 +232,22 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
   }
   });
 
+  router.get("/status", (_req, res) => {
+    const total = db.prepare("SELECT COUNT(*) as count FROM transactions").get() as any;
+    const uncategorised = db.prepare("SELECT COUNT(*) as count FROM transactions WHERE categorisationMethod IS NULL").get() as any;
+    const failed = db.prepare("SELECT COUNT(*) as count FROM transactions WHERE categorisationMethod = 'failed'").get() as any;
+    const aiDone = db.prepare("SELECT COUNT(*) as count FROM transactions WHERE categorisationMethod = 'ai'").get() as any;
+
+    const isProcessing = uncategorised.count > 0;
+
+    res.json({
+      total: total.count,
+      categorised: aiDone.count,
+      uncategorised: uncategorised.count,
+      failed: failed.count,
+      isProcessing,
+    });
+  });
+
   return router;
 }

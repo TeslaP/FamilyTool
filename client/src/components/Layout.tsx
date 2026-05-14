@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
+import { AiStatusBar } from "./AiStatusBar";
 import { cn, getCurrentMonth } from "../lib/utils";
 import { useApi } from "../hooks/useApi";
 import { api } from "../api/client";
@@ -71,6 +72,7 @@ export function Layout() {
       <main className="flex-1 overflow-auto">
         <Outlet />
       </main>
+      <AiStatusBar />
     </div>
   );
 }

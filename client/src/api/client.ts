@@ -116,6 +116,10 @@ class ApiClient {
     });
   }
 
+  async getImportStatus() {
+    return this.request<{ total: number; categorised: number; uncategorised: number; failed: number; isProcessing: boolean }>("/import/status");
+  }
+
   async getPacing(month: string) {
     return this.request<any>(`/transactions/pacing?month=${month}`);
   }
