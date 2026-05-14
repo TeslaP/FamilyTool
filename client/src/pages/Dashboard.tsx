@@ -220,9 +220,9 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
 }) {
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] justify-between">
-      {/* Hero section — upper portion */}
-      <div className="flex-1 flex flex-col items-center justify-center">
+    <div className="flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
+      {/* Hero section */}
+      <div className="text-center mb-10">
         <p className="text-lg text-stone-400 mb-4">
           Available this month
         </p>
@@ -236,8 +236,8 @@ function OverviewMode({
         </div>
       </div>
 
-      {/* Category grid — middle */}
-      <div className="py-6">
+      {/* Category grid */}
+      <div className="mb-8">
         <div className="grid grid-cols-4 gap-3 max-w-3xl mx-auto">
           {chartData.slice(0, 8).map((cat) => (
             <button
@@ -252,8 +252,8 @@ function OverviewMode({
         </div>
       </div>
 
-      {/* Reflect link — bottom */}
-      <div className="pb-8 text-center">
+      {/* Reflect link */}
+      <div className="text-center">
         {summary ? (
           <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
         ) : (
