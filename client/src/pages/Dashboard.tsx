@@ -207,54 +207,53 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
 }) {
   return (
-    <div className="space-y-8">
+    <div>
       {/* Hero metric */}
-      <div className="text-center py-12">
-        <p className="text-sm text-stone-500 font-normal mb-2">
+      <div className="text-center py-16">
+        <p className="text-base text-stone-400 mb-3">
           Available this month
         </p>
         <p
           className={cn(
-            "text-hero font-light",
+            "text-7xl font-light tracking-tight",
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
           {formatCurrency(netCashflow)}
         </p>
-        <div className="flex items-center justify-center gap-6 mt-6 text-base text-stone-600">
+        <div className="flex items-center justify-center gap-6 mt-4 text-sm text-stone-500">
           <span>
-            Income: <span className="font-medium text-stone-900">{formatCurrency(totalIncome)}</span>
+            Income: <span className="font-medium">{formatCurrency(totalIncome)}</span>
           </span>
           <span>
-            Expenses: <span className="font-medium text-stone-900">{formatCurrency(totalExpenses)}</span>
+            Expenses: <span className="font-medium">{formatCurrency(totalExpenses)}</span>
           </span>
           <span>
-            Savings rate: <span className="font-medium text-stone-900">{savingsRate}%</span>
+            <span className="font-medium">{savingsRate}%</span> saved
           </span>
         </div>
       </div>
 
       {/* AI Reflection */}
-      {summary ? (
-        <div className="bg-white border border-stone-200 rounded-xl p-6">
-          <p className="text-base text-stone-600 leading-relaxed italic">{summary}</p>
-        </div>
-      ) : (
-        <div className="bg-white border border-stone-200 rounded-xl p-6 text-center">
-          <p className="text-sm text-stone-500 mb-3">Generate a reflection on this month</p>
+      <div className="text-center">
+        {summary ? (
+          <p className="text-stone-500 text-sm leading-relaxed max-w-lg mx-auto">
+            {summary}
+          </p>
+        ) : (
           <button
             onClick={onGenerateSummary}
             disabled={summaryLoading}
-            className="border border-stone-300 text-stone-600 hover:bg-stone-50 rounded-lg px-4 py-2 text-sm disabled:opacity-50"
+            className="text-sm text-stone-400 hover:text-stone-600 transition-colors disabled:opacity-50"
           >
-            {summaryLoading ? "Generating..." : "Reflect"}
+            {summaryLoading ? "Generating..." : "Reflect on this month →"}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Full-width category bar chart */}
       {chartData.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-xl p-8">
+        <div className="mt-8 bg-white border border-stone-200 rounded-xl p-8">
           <h3 className="text-sm font-medium text-stone-700 mb-4">
             Spending by Category
           </h3>
