@@ -33,23 +33,25 @@ Categorise each transaction. For each, determine:
 - confidence: 0.0 to 1.0
 
 DIRECTION RULES (critical):
-- "transfer": Money moving between the family's OWN accounts. Indicators:
+- "transfer": ONLY money moving between the family's OWN savings/investment accounts. Indicators:
   - Naam contains family member names (PK TESLENKO, Kopilka)
-  - Savings account transfers
-  - Credit card payments to "International Card Services" or "INT CARD SERVICES"
+  - Savings account transfers to own accounts
   - Investment purchases (BUY VNGRD, ETF purchases)
 - "income": Money coming IN from external sources (salary, freelance, child benefits, refunds, dividends)
   - Indicators: positive amount, employers, SVB (Sociale Verzekeringsbank), tax refunds
 - "expense": Money going OUT to external parties (shops, services, subscriptions)
   - This is the default for most transactions
+  - Credit card payments ("International Card Services", "INT CARD SERVICES") are EXPENSES, not transfers
+  - Mortgage payments (ABN AMRO BANK NV hypotheek) are EXPENSES
 
 TRANSFER DETECTION (family's own accounts):
 These are ALWAYS "transfer" direction:
 - "PK TESLENKO" (any variation) — internal family transfer
 - "Kopilka" — savings jar
-- "International Card Services" or "INT CARD SERVICES" — credit card payment
 - Any BUY/SELL of ETFs or investment funds → transfer to Investment category
 - "VNGRD SP500 ETF" purchases → transfer/Investment
+
+NOTE: Credit card payments (International Card Services, INT CARD SERVICES) are NOT transfers — they are EXPENSES.
 
 RECURRING DETECTION:
 Mark as recurring (isRecurring: true):
