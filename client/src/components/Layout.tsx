@@ -33,8 +33,8 @@ export function Layout() {
   const reviewCount = reviewItems?.length || 0;
 
   return (
-    <div className="min-h-screen flex bg-stone-50">
-      <aside className="w-[60px] bg-stone-950 flex flex-col items-center py-4 gap-2 flex-shrink-0">
+    <div className="h-screen flex bg-stone-50 overflow-hidden">
+      <aside className="w-[60px] h-screen bg-stone-950 flex flex-col items-center py-4 gap-2 flex-shrink-0">
         <HorizonLogo size={36} className="mb-3" />
         <nav className="flex-1 flex flex-col items-center gap-1.5">
           {navItems.map(({ to, icon: Icon, label }) => (

@@ -220,7 +220,7 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
 }) {
   return (
-    <div className="flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
+    <div className="relative flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
       {/* Hero section */}
       <div className="text-center mb-10">
         <p className="text-lg text-stone-400 mb-4">
@@ -252,8 +252,8 @@ function OverviewMode({
         </div>
       </div>
 
-      {/* Reflect link */}
-      <div className="text-center">
+      {/* Reflect link — anchored to bottom */}
+      <div className="absolute bottom-6 left-0 right-0 text-center">
         {summary ? (
           <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
         ) : (
