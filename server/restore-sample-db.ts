@@ -13,8 +13,8 @@ import { recalculateAll } from "./src/services/recalculation.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const dbPath = process.env.DB_PATH || "../data/familytool.sqlite";
-const resolvedDbPath = resolve(__dirname, "..", dbPath);
+const dbPath = process.env.DB_PATH || "./data/familytool.sqlite";
+const resolvedDbPath = resolve(__dirname, dbPath);
 
 const db = new Database(resolvedDbPath);
 db.pragma("journal_mode = WAL");
