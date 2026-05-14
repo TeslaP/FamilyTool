@@ -40,6 +40,7 @@ function ConfirmModal({
 export function Review() {
   const [month, setMonth] = useState(getCurrentMonth());
   const [range, setRange] = useState<MonthRange | null>(null);
+  const [viewMode, setViewMode] = useState<"review" | "all">("review");
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [editingMerchant, setEditingMerchant] = useState<number | null>(null);
   const [merchantValue, setMerchantValue] = useState("");
@@ -55,12 +56,12 @@ export function Review() {
           months.push(m);
           m = getNextMonth(m);
         }
-        const results = await Promise.all(months.map(mo => api.getTransactions({ month: mo, needsReview: true })));
+        const results = await Promise.all(months.map(mo => api.getTransactions({ month: mo, needsReview: viewMode === "review" })));
         return results.flat();
       }
-      return api.getTransactions({ month, needsReview: true });
+      return api.getTransactions({ month, needsReview: viewMode === "review" });
     },
-    [month, range]
+    [month, range, viewMode]
   );
   const { data: categories } = useApi(() => api.getCategories(), []);
 
@@ -134,7 +135,23 @@ export function Review() {
             <span className="text-sm text-stone-500">({transactions.length} items)</span>
           )}
         </div>
-        <MonthSelector month={month} range={range} onChange={setMonth} onRangeChange={setRange} />
+        <div className="flex items-center gap-4">
+          <div className="flex border border-stone-200 rounded-lg overflow-hidden text-sm">
+            <button
+              className={cn("px-3 py-1.5", viewMode === "review" ? "bg-stone-700 text-white" : "bg-white text-stone-600")}
+              onClick={() => setViewMode("review")}
+            >
+              Needs review
+            </button>
+            <button
+              className={cn("px-3 py-1.5", viewMode === "all" ? "bg-stone-700 text-white" : "bg-white text-stone-600")}
+              onClick={() => setViewMode("all")}
+            >
+              All transactions
+            </button>
+          </div>
+          <MonthSelector month={month} range={range} onChange={setMonth} onRangeChange={setRange} />
+        </div>
       </div>
 
       {/* Bulk action bar */}
