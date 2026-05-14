@@ -20,9 +20,15 @@ export function validateAiResponse(
   expectedCount: number,
   validCategoryIds: number[]
 ): ValidationResult {
+  // Strip markdown code fences if present
+  let cleaned = raw.trim();
+  if (cleaned.startsWith("```")) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, "").replace(/\n?```\s*$/, "");
+  }
+
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(cleaned);
   } catch {
     return { valid: false, error: "Failed to parse JSON response" };
   }

@@ -3,7 +3,7 @@ import { getAiClient } from "./client.js";
 import { loadConfig } from "../config.js";
 import { validateAiResponse, type AiCategorisationResult } from "./validator.js";
 import { AiCache, type CachedCategorisation } from "./cache.js";
-import { buildCategorisationPrompt, getLeafCategories } from "./prompt.js";
+import { buildCategorisationPrompt, getLeafCategories, getKnownRules } from "./prompt.js";
 
 export interface CategorisationBatchResult {
   results: Map<number, AiCategorisationResult>;
@@ -54,7 +54,8 @@ export async function categoriseTransactions(
 
   for (const batch of batches) {
     const descriptions = batch.map((t) => t.rawDescription);
-    const prompt = buildCategorisationPrompt(descriptions, categories);
+    const knownRules = getKnownRules(db);
+    const prompt = buildCategorisationPrompt(descriptions, categories, knownRules);
 
     let aiResult: AiCategorisationResult[] | null = null;
 
@@ -64,8 +65,7 @@ export async function categoriseTransactions(
           model: config.aiModel,
           messages: [{ role: "user", content: prompt }],
           temperature: 0.1,
-          timeout: config.aiTimeoutMs,
-        });
+        }, { timeout: config.aiTimeoutMs });
 
         const content = response.choices[0]?.message?.content || "";
         const validation = validateAiResponse(content, batch.length, validCategoryIds);

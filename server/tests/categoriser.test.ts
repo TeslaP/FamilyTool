@@ -49,7 +49,7 @@ describe("buildCategorisationPrompt", () => {
   it("instructs JSON-only response", () => {
     const categories = getLeafCategories(db);
     const prompt = buildCategorisationPrompt(["test"], categories);
-    expect(prompt).toContain("ONLY a JSON array");
+    expect(prompt).toContain("ONLY a valid JSON array");
     expect(prompt).toContain("No explanation");
   });
 });

@@ -60,6 +60,7 @@ export function seedCategories(db: Database.Database): void {
     const leisure = insertParent("Leisure", "expense", 8);
     insertChild("Entertainment", leisure, "expense", 1);
     insertChild("Donation", leisure, "expense", 2);
+    insertChild("Pet Supplies", leisure, "expense", 3);
 
     const finance = insertParent("Finance", "expense", 9);
     insertChild("Miscellaneous", finance, "expense", 1);
