@@ -16,6 +16,109 @@ import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { formatCurrency, formatMonth, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
 
+// --- Weekly Pacing Section (fetches its own data) ---
+
+function WeeklyPacingSection({ month }: { month: string }) {
+  const { data, loading } = useApi(() => api.getPacing(month), [month]);
+
+  if (loading || !data) return <div className="text-stone-400 text-sm">Loading weekly data...</div>;
+
+  const { weeks, projection } = data;
+  const trendColor = projection.trend === "tightening" ? "text-amber-600" :
+                     projection.trend === "improving" ? "text-green-700" : "text-stone-500";
+
+  return (
+    <section>
+      <h3 className="text-base font-medium text-stone-700 mb-4">Weekly pacing</h3>
+      <div className="space-y-2 mb-4">
+        {weeks.map((week: any, i: number) => (
+          <div key={week.weekNum} className="flex items-center gap-3 text-sm">
+            <span className="text-stone-400 w-14">Week {week.weekNum}</span>
+            <span className="text-stone-300">&middot;</span>
+            <span className="text-stone-600">{formatCurrency(week.spent)} spent</span>
+            <span className="text-stone-300">&middot;</span>
+            <span className={cn("font-medium", week.remaining >= 0 ? "text-stone-900" : "text-red-600")}>
+              {formatCurrency(week.remaining)} left
+            </span>
+            {i === weeks.length - 1 && <span className="w-1.5 h-1.5 rounded-full bg-stone-400 ml-1" />}
+          </div>
+        ))}
+      </div>
+      <p className="text-xs text-stone-400">
+        Projected month-end: {formatCurrency(projection.remaining)} &middot; <span className={trendColor}>{projection.trend}</span>
+      </p>
+    </section>
+  );
+}
+
+// --- Year Trajectory Section (fetches its own data) ---
+
+function TrajectorySection({ year }: { year: number }) {
+  const { data, loading } = useApi(() => api.getTrajectory(year), [year]);
+
+  if (loading || !data) return <div className="text-stone-400 text-sm">Loading trajectory...</div>;
+
+  const { currentYear, previousYear, totals } = data;
+  const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+  const spendingData = currentYear.map((c: any, i: number) => ({
+    month: MONTH_LABELS[i],
+    current: Math.round(c.expenses),
+    previous: Math.round(previousYear[i]?.expenses || 0),
+  }));
+
+  const investProgress = totals.investmentGoal > 0 ? Math.min(100, Math.round((totals.investmentActual / totals.investmentGoal) * 100)) : 0;
+  const savingsProgress = totals.savingsGoal > 0 ? Math.min(100, Math.round((totals.savingsActual / totals.savingsGoal) * 100)) : 0;
+
+  return (
+    <section>
+      <h3 className="text-base font-medium text-stone-700 mb-4">Year trajectory &mdash; {year}</h3>
+
+      {/* Savings progress */}
+      {(totals.investmentGoal > 0 || totals.savingsGoal > 0) && (
+        <div className="space-y-3 mb-8">
+          {totals.investmentGoal > 0 && (
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-stone-600">Investment</span>
+                <span className="text-stone-500">{formatCurrency(totals.investmentActual)} / {formatCurrency(totals.investmentGoal)}</span>
+              </div>
+              <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                <div className="h-full bg-stone-700 rounded-full" style={{ width: `${investProgress}%` }} />
+              </div>
+            </div>
+          )}
+          {totals.savingsGoal > 0 && (
+            <div>
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-stone-600">Savings</span>
+                <span className="text-stone-500">{formatCurrency(totals.savingsActual)} / {formatCurrency(totals.savingsGoal)}</span>
+              </div>
+              <div className="h-2 bg-stone-100 rounded-full overflow-hidden">
+                <div className="h-full bg-stone-500 rounded-full" style={{ width: `${savingsProgress}%` }} />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Monthly spending YoY */}
+      <div className="bg-white border border-stone-100 rounded-xl p-6">
+        <p className="text-sm text-stone-500 mb-4">Monthly spending</p>
+        <ResponsiveContainer width="100%" height={180}>
+          <BarChart data={spendingData} margin={{ left: 0, right: 0, top: 5, bottom: 5 }}>
+            <XAxis dataKey="month" tick={{ fontSize: 12, fill: "#78716c" }} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 11, fill: "#a8a29e" }} axisLine={false} tickLine={false} tickFormatter={(v) => `€${Math.round(v / 1000)}k`} />
+            <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+            <Bar dataKey="previous" fill="#e7e5e4" radius={[3, 3, 0, 0]} name={`${year - 1}`} />
+            <Bar dataKey="current" fill="#57534e" radius={[3, 3, 0, 0]} name={`${year}`} />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    </section>
+  );
+}
+
 export function Dashboard() {
   const [month, setMonth] = useState(getCurrentMonth());
   const [range, setRange] = useState<MonthRange | null>(null);
@@ -174,6 +277,7 @@ export function Dashboard() {
           summaryLoading={summaryLoading}
           onGenerateSummary={handleGenerateSummary}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
+          onSwitchToDetail={() => setMode("detail")}
         />
       ) : (
         <DetailMode
@@ -187,6 +291,7 @@ export function Dashboard() {
           summaryLoading={summaryLoading}
           onGenerateSummary={handleGenerateSummary}
           month={month}
+          range={range}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
       )}
@@ -207,6 +312,7 @@ function OverviewMode({
   summaryLoading,
   onGenerateSummary,
   onCategoryClick,
+  onSwitchToDetail,
 }: {
   netCashflow: number;
   totalIncome: number;
@@ -218,6 +324,7 @@ function OverviewMode({
   summaryLoading: boolean;
   onGenerateSummary: () => void;
   onCategoryClick: (id: number) => void;
+  onSwitchToDetail: () => void;
 }) {
   return (
     <div className="relative flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
@@ -226,15 +333,15 @@ function OverviewMode({
         <p className="text-lg text-stone-400 mb-4">
           Available in {formatMonth(month)}
         </p>
-        <Link
-          to={`/pacing?month=${month}`}
+        <button
+          onClick={onSwitchToDetail}
           className={cn(
             "text-[6.5rem] font-light tracking-tight leading-none hover:opacity-80 transition-opacity cursor-pointer",
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
           {formatCurrency(netCashflow)}
-        </Link>
+        </button>
         <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
           <span>Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span></span>
           <span>Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span></span>
@@ -276,7 +383,7 @@ function OverviewMode({
   );
 }
 
-// --- Detail Mode ---
+// --- Detail Mode (Vertical Scrollable Report) ---
 
 function DetailMode({
   totalIncome,
@@ -289,6 +396,7 @@ function DetailMode({
   summaryLoading,
   onGenerateSummary,
   month,
+  range,
   onCategoryClick,
 }: {
   totalIncome: number;
@@ -301,113 +409,69 @@ function DetailMode({
   summaryLoading: boolean;
   onGenerateSummary: () => void;
   month: string;
+  range?: MonthRange | null;
   onCategoryClick: (id: number) => void;
 }) {
+  const isSingleMonth = !range;
+
   return (
-    <div className="space-y-6">
-      {/* Metric cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard label="Income" value={formatCurrency(totalIncome)} />
-        <MetricCard label="Expenses" value={formatCurrency(totalExpenses)} />
-        <MetricCard
-          label="Net Cashflow"
-          value={formatCurrency(netCashflow)}
-          change={
-            netCashflow >= 0
-              ? { value: formatCurrency(netCashflow), positive: true }
-              : { value: formatCurrency(Math.abs(netCashflow)), positive: false }
-          }
-        />
-        <MetricCard label="Savings Rate" value={`${savingsRate}%`} />
-      </div>
+    <div className="max-w-4xl mx-auto py-8 space-y-12">
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* Category bar chart */}
-        {chartData.length > 0 && (
-          <div className="bg-white border border-stone-200 rounded-lg p-4">
-            <h3 className="text-sm font-medium text-stone-700 mb-3">
-              Spending by Category
-            </h3>
-            <ResponsiveContainer width="100%" height={250}>
-              <BarChart data={chartData} layout="vertical" margin={{ left: 70 }}>
-                <XAxis type="number" tickFormatter={(v) => `€${v}`} />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={70}
-                  tick={{ fontSize: 11 }}
-                />
-                <Tooltip
-                  formatter={(value) => [formatCurrency(Number(value)), "Amount"]}
-                />
-                <Bar
-                  dataKey="amount"
-                  fill="#57534e"
-                  radius={[0, 4, 4, 0]}
-                  cursor="pointer"
-                  onClick={(data: any) => {
-                    if (data?.id) onCategoryClick(data.id);
-                  }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Trend chart placeholder */}
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-stone-700 mb-3">
-            Monthly Trend
-          </h3>
-          <div className="flex items-center justify-center h-[250px] text-stone-400 text-sm">
-            Trend data available after 2+ months of imports
-          </div>
+      {/* Section 1: Monthly metrics (always shown) */}
+      <section>
+        <div className="grid grid-cols-4 gap-3">
+          <MetricCard label="Income" value={formatCurrency(totalIncome)} />
+          <MetricCard label="Expenses" value={formatCurrency(totalExpenses)} />
+          <MetricCard label="Net" value={formatCurrency(netCashflow)} />
+          <MetricCard label="Saved" value={`${savingsRate}%`} />
         </div>
-      </div>
+      </section>
 
-      {/* Top merchants */}
+      {/* Section 2: Weekly Pacing (only for single month) */}
+      {isSingleMonth && <WeeklyPacingSection month={month} />}
+
+      {/* Section 3: Category Breakdown */}
+      <section>
+        <h3 className="text-base font-medium text-stone-700 mb-4">Spending by category</h3>
+        <div className="grid grid-cols-4 gap-3">
+          {chartData.map(cat => (
+            <button key={cat.id} onClick={() => onCategoryClick(cat.id)} className="bg-white border border-stone-100 rounded-xl p-4 text-center hover:shadow-card transition-all">
+              <p className="text-sm text-stone-500 mb-1">{cat.name}</p>
+              <p className="text-lg font-medium text-stone-900">{formatCurrency(cat.amount)}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Section 4: Top Merchants */}
       {topMerchants.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
-          <h3 className="text-sm font-medium text-stone-700 mb-3">
-            Top Merchants
-          </h3>
-          <div className="space-y-2">
+        <section>
+          <h3 className="text-base font-medium text-stone-700 mb-4">Top merchants</h3>
+          <div className="bg-white border border-stone-100 rounded-xl divide-y divide-stone-50">
             {topMerchants.map(([name, amount]) => (
-              <div
-                key={name}
-                className="flex items-center justify-between py-1.5 border-b border-stone-100 last:border-0"
-              >
+              <div key={name} className="flex justify-between px-5 py-3">
                 <span className="text-sm text-stone-700">{name}</span>
-                <span className="text-sm font-medium text-stone-900">
-                  {formatCurrency(amount)}
-                </span>
+                <span className="text-sm font-medium text-stone-900">{formatCurrency(amount)}</span>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* AI Summary */}
-      <div className="bg-white border border-stone-200 rounded-lg p-4">
-        <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-stone-700">AI Summary</h3>
-          <button
-            onClick={onGenerateSummary}
-            disabled={summaryLoading}
-            className="text-xs px-3 py-1 bg-stone-700 text-white rounded hover:bg-stone-600 disabled:opacity-50"
-          >
-            {summaryLoading ? "Generating..." : "Generate"}
-          </button>
-        </div>
+      {/* Section 5: Year Trajectory (always shown) */}
+      <TrajectorySection year={parseInt(month.split("-")[0])} />
+
+      {/* Section 6: Observations */}
+      <section className="pb-12">
+        <h3 className="text-base font-medium text-stone-700 mb-4">Observations</h3>
         {summary ? (
-          <p className="text-sm text-stone-600 whitespace-pre-wrap">{summary}</p>
+          <p className="font-editorial text-lg text-stone-600 italic leading-relaxed">{summary}</p>
         ) : (
-          <p className="text-sm text-stone-400">
-            Click "Generate" to get an AI-powered summary of your spending patterns.
-          </p>
+          <button onClick={onGenerateSummary} disabled={summaryLoading} className="font-editorial text-base text-stone-400 italic hover:text-stone-600 transition-colors">
+            {summaryLoading ? "Reflecting..." : "Reflect on this period →"}
+          </button>
         )}
-      </div>
+      </section>
     </div>
   );
 }
