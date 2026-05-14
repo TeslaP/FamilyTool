@@ -12,6 +12,7 @@ import { LayoutDashboard } from "lucide-react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useMonthParam } from "../hooks/useMonthParam";
+import { useCountUp } from "../hooks/useCountUp";
 import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
@@ -325,6 +326,8 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
   onSwitchToDetail: () => void;
 }) {
+  const animatedValue = useCountUp(netCashflow, 1200);
+
   return (
     <div className="relative flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
       {/* Hero section */}
@@ -339,7 +342,7 @@ function OverviewMode({
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
-          {formatCurrency(netCashflow)}
+          {formatCurrency(animatedValue)}
         </button>
         <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
           <span>Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span></span>
