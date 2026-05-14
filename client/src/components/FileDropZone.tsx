@@ -32,14 +32,14 @@ export function FileDropZone({ onFile, accept, disabled }: Props) {
       onDragLeave={() => setDragging(false)}
       onDrop={handleDrop}
       className={cn(
-        "border-2 border-dashed rounded-lg p-14 text-center cursor-pointer transition-colors",
+        "border-2 border-dashed rounded-2xl p-20 text-center cursor-pointer transition-colors",
         dragging ? "border-stone-900 bg-stone-100" : "border-stone-300 hover:border-stone-400",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
-      <Upload className="mx-auto mb-3 text-stone-400" size={32} />
-      <p className="text-base text-stone-600">Drop a .TAB or .XLS file here</p>
-      <p className="text-sm text-stone-400 mt-1">or click to browse</p>
+      <Upload className="mx-auto mb-4 text-stone-400" size={40} />
+      <p className="text-lg text-stone-600">Drop a .TAB or .XLS file here</p>
+      <p className="text-base text-stone-400 mt-1">or click to browse</p>
       <input
         ref={inputRef}
         type="file"
