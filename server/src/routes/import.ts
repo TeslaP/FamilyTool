@@ -95,6 +95,8 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       return;
     }
 
+    try {
+
     const backupDir = join(dirname(dbPath), "backups");
     try {
       createBackup(dbPath, backupDir);
@@ -117,12 +119,18 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
     `);
 
     db.transaction(() => {
+      const seen = new Set<string>();
       const nonDuplicates = transactions.filter((t) => {
+        if (seen.has(t.fingerprint)) {
+          duplicatesSkipped++;
+          return false;
+        }
         const existing = db.prepare("SELECT id FROM transactions WHERE fingerprint = ?").get(t.fingerprint);
         if (existing) {
           duplicatesSkipped++;
           return false;
         }
+        seen.add(t.fingerprint);
         return true;
       });
 
@@ -220,6 +228,10 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       aiFailed,
       fileName,
     });
+  } catch (err: any) {
+    console.error("Import confirm error:", err.message);
+    res.status(500).json({ error: `Import failed: ${err.message}` });
+  }
   });
 
   return router;
