@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut, Wallet } from "lucide-react";
 import { cn } from "../lib/utils";
 
 const navItems = [
@@ -10,38 +10,52 @@ const navItems = [
   { to: "/forecast", icon: TrendingUp, label: "Forecast" },
 ];
 
+function NavTooltip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="relative group">
+      {children}
+      <div className="absolute left-full ml-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-stone-800 text-white text-xs rounded opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 whitespace-nowrap pointer-events-none">
+        {label}
+      </div>
+    </div>
+  );
+}
+
 export function Layout() {
   const { logout } = useAuth();
 
   return (
     <div className="min-h-screen flex bg-stone-50">
-      <aside className="w-[52px] bg-stone-950 flex flex-col items-center py-3 gap-2 flex-shrink-0">
-        <div className="w-7 h-7 bg-stone-800 rounded-md mb-2" />
-        <nav className="flex-1 flex flex-col items-center gap-1">
+      <aside className="w-[60px] bg-stone-950 flex flex-col items-center py-4 gap-2 flex-shrink-0">
+        <div className="w-9 h-9 bg-stone-700 rounded-lg flex items-center justify-center mb-3">
+          <Wallet size={18} className="text-white" />
+        </div>
+        <nav className="flex-1 flex flex-col items-center gap-1.5">
           {navItems.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === "/"}
-              title={label}
-              className={({ isActive }) =>
-                cn(
-                  "w-8 h-8 flex items-center justify-center rounded-md transition-colors",
-                  isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800"
-                )
-              }
-            >
-              <Icon size={18} />
-            </NavLink>
+            <NavTooltip key={to} label={label}>
+              <NavLink
+                to={to}
+                end={to === "/"}
+                className={({ isActive }) =>
+                  cn(
+                    "w-9 h-9 flex items-center justify-center rounded-md transition-all duration-150",
+                    isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800/80"
+                  )
+                }
+              >
+                <Icon size={20} />
+              </NavLink>
+            </NavTooltip>
           ))}
         </nav>
-        <button
-          onClick={logout}
-          title="Sign out"
-          className="w-8 h-8 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800"
-        >
-          <LogOut size={16} />
-        </button>
+        <NavTooltip label="Sign out">
+          <button
+            onClick={logout}
+            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80 transition-all duration-150"
+          >
+            <LogOut size={18} />
+          </button>
+        </NavTooltip>
       </aside>
       <main className="flex-1 overflow-auto">
         <Outlet />
