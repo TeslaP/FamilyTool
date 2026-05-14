@@ -2,7 +2,9 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
-import { cn } from "../lib/utils";
+import { cn, getCurrentMonth } from "../lib/utils";
+import { useApi } from "../hooks/useApi";
+import { api } from "../api/client";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
@@ -24,6 +26,11 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
 
 export function Layout() {
   const { logout } = useAuth();
+  const { data: reviewItems } = useApi(
+    () => api.getTransactions({ month: getCurrentMonth(), needsReview: true }),
+    []
+  );
+  const reviewCount = reviewItems?.length || 0;
 
   return (
     <div className="min-h-screen flex bg-stone-50">
@@ -37,12 +44,17 @@ export function Layout() {
                 end={to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "w-9 h-9 flex items-center justify-center rounded-md transition-all duration-150",
+                    "relative w-9 h-9 flex items-center justify-center rounded-md transition-all duration-150",
                     isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800/80"
                   )
                 }
               >
                 <Icon size={20} />
+                {to === "/review" && reviewCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-500 rounded-full text-[9px] font-medium text-white flex items-center justify-center">
+                    {reviewCount > 9 ? "9+" : reviewCount}
+                  </span>
+                )}
               </NavLink>
             </NavTooltip>
           ))}
