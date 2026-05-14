@@ -93,6 +93,15 @@ export function Review() {
     refetch();
   };
 
+  const handleMarkReviewed = async () => {
+    if (selected.size === 0) return;
+    for (const id of selected) {
+      await api.updateTransaction(id, {});
+    }
+    setSelected(new Set());
+    refetch();
+  };
+
   const handleDeleteSingle = async (id: number) => {
     await api.deleteTransaction(id);
     setDeleteConfirm(null);
@@ -170,6 +179,12 @@ export function Review() {
             className="px-3 py-1 text-sm bg-stone-700 text-white rounded-md hover:bg-stone-600 disabled:opacity-50"
           >
             Assign
+          </button>
+          <button
+            onClick={handleMarkReviewed}
+            className="px-3 py-1 text-sm border border-stone-200 rounded-md text-stone-600 hover:bg-stone-100"
+          >
+            Confirm selected
           </button>
           <button
             onClick={() => setDeleteConfirm({ type: "bulk" })}
