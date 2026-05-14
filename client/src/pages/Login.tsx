@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { Wallet } from "lucide-react";
+import { HorizonLogo } from "../components/HorizonLogo";
 
 const backgrounds = [
   "/backgrounds/mountains-fog.jpg",
@@ -63,9 +63,7 @@ export function Login() {
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <div className="w-14 h-14 bg-white/20 backdrop-blur-sm rounded-2xl flex items-center justify-center shadow-lg border border-white/30">
-            <Wallet size={24} className="text-white" />
-          </div>
+          <HorizonLogo size={56} variant="light" className="backdrop-blur-sm shadow-lg border border-white/30" />
         </div>
 
         {/* Title */}

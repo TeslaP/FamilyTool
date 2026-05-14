@@ -215,7 +215,7 @@ function OverviewMode({
         </p>
         <p
           className={cn(
-            "text-7xl font-light tracking-tight",
+            "text-hero",
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
@@ -237,14 +237,14 @@ function OverviewMode({
       {/* AI Reflection */}
       <div className="text-center">
         {summary ? (
-          <p className="text-stone-500 text-sm leading-relaxed max-w-lg mx-auto">
+          <p className="font-editorial text-xl text-stone-600 leading-relaxed italic max-w-lg mx-auto">
             {summary}
           </p>
         ) : (
           <button
             onClick={onGenerateSummary}
             disabled={summaryLoading}
-            className="text-sm text-stone-400 hover:text-stone-600 transition-colors disabled:opacity-50"
+            className="font-editorial text-lg text-stone-400 italic hover:text-stone-600 transition-colors disabled:opacity-50"
           >
             {summaryLoading ? "Generating..." : "Reflect on this month →"}
           </button>

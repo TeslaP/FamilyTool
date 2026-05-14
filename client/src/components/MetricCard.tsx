@@ -9,7 +9,7 @@ interface Props {
 
 export function MetricCard({ label, value, change, className }: Props) {
   return (
-    <div className={cn("bg-white border border-stone-200 rounded-xl p-5", className)}>
+    <div className={cn("bg-white border border-stone-100 rounded-xl p-5 shadow-card", className)}>
       <p className="text-sm text-stone-500 uppercase tracking-wide">{label}</p>
       <p className="text-2xl font-medium text-stone-900 mt-1">{value}</p>
       {change && (

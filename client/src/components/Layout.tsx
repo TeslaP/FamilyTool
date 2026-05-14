@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut, Wallet } from "lucide-react";
+import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
+import { HorizonLogo } from "./HorizonLogo";
 import { cn } from "../lib/utils";
 
 const navItems = [
@@ -27,9 +28,7 @@ export function Layout() {
   return (
     <div className="min-h-screen flex bg-stone-50">
       <aside className="w-[60px] bg-stone-950 flex flex-col items-center py-4 gap-2 flex-shrink-0">
-        <div className="w-9 h-9 bg-stone-700 rounded-lg flex items-center justify-center mb-3">
-          <Wallet size={18} className="text-white" />
-        </div>
+        <HorizonLogo size={36} className="mb-3" />
         <nav className="flex-1 flex flex-col items-center gap-1.5">
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavTooltip key={to} label={label}>
