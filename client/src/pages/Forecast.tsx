@@ -2,19 +2,19 @@ import { useState, useMemo } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { formatCurrency, getCurrentMonth, getNextMonth, getPreviousMonth, cn } from "../lib/utils";
+import { MonthSelector } from "../components/MonthSelector";
 
 export function Forecast() {
-  const currentMonth = getCurrentMonth();
-  const forecastMonth = getNextMonth(currentMonth);
+  const [selectedMonth, setSelectedMonth] = useState(getNextMonth(getCurrentMonth()));
 
-  // Fetch last 3 months of transactions
-  const month1 = currentMonth;
+  // Fetch last 3 months of transactions relative to selectedMonth
+  const month1 = getPreviousMonth(selectedMonth);
   const month2 = getPreviousMonth(month1);
   const month3 = getPreviousMonth(month2);
 
-  const { data: tx1 } = useApi(() => api.getTransactions({ month: month1 }), []);
-  const { data: tx2 } = useApi(() => api.getTransactions({ month: month2 }), []);
-  const { data: tx3 } = useApi(() => api.getTransactions({ month: month3 }), []);
+  const { data: tx1 } = useApi(() => api.getTransactions({ month: month1 }), [selectedMonth]);
+  const { data: tx2 } = useApi(() => api.getTransactions({ month: month2 }), [selectedMonth]);
+  const { data: tx3 } = useApi(() => api.getTransactions({ month: month3 }), [selectedMonth]);
   const { data: categories } = useApi(() => api.getCategories(), []);
 
   const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
@@ -107,9 +107,10 @@ export function Forecast() {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-semibold text-stone-900 mb-6">
-        Forecast — {new Date(parseInt(forecastMonth.split("-")[0]), parseInt(forecastMonth.split("-")[1]) - 1).toLocaleDateString("en-US", { month: "long", year: "numeric" })}
-      </h2>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-2xl font-semibold text-stone-900">Forecast</h2>
+        <MonthSelector month={selectedMonth} onChange={setSelectedMonth} />
+      </div>
 
       {/* Hero remaining metric */}
       <div className="bg-white border border-stone-200 rounded-lg p-6 text-center mb-6">
