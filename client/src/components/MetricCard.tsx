@@ -9,11 +9,11 @@ interface Props {
 
 export function MetricCard({ label, value, change, className }: Props) {
   return (
-    <div className={cn("bg-white border border-stone-200 rounded-lg p-4", className)}>
-      <p className="text-xs text-stone-500 uppercase tracking-wide">{label}</p>
-      <p className="text-xl font-semibold text-stone-900 mt-1">{value}</p>
+    <div className={cn("bg-white border border-stone-200 rounded-xl p-5", className)}>
+      <p className="text-sm text-stone-500 uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-medium text-stone-900 mt-1">{value}</p>
       {change && (
-        <p className={cn("text-xs mt-1", change.positive ? "text-green-600" : "text-red-600")}>
+        <p className={cn("text-sm mt-1", change.positive ? "text-green-600" : "text-red-600")}>
           {change.positive ? "+" : ""}{change.value} vs last month
         </p>
       )}

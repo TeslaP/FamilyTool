@@ -134,7 +134,7 @@ export function DashboardDrilldown() {
         <h2 className="text-lg font-semibold text-stone-900 mb-4">
           {currentCategory!.name}
         </h2>
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
+        <div className="bg-white border border-stone-200 rounded-xl p-6">
           {childTotals.length > 0 && (
             <ResponsiveContainer
               width="100%"
@@ -150,7 +150,7 @@ export function DashboardDrilldown() {
                   type="category"
                   dataKey="name"
                   width={80}
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 13 }}
                 />
                 <Tooltip
                   formatter={(value) => [formatCurrency(Number(value)), "Amount"]}
@@ -197,7 +197,7 @@ export function DashboardDrilldown() {
         <h2 className="text-lg font-semibold text-stone-900 mb-4">
           {currentCategory?.name || "Category"}
         </h2>
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
+        <div className="bg-white border border-stone-200 rounded-xl p-6">
           {merchantData.length > 0 && (
             <ResponsiveContainer
               width="100%"
@@ -213,7 +213,7 @@ export function DashboardDrilldown() {
                   type="category"
                   dataKey="name"
                   width={100}
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 13 }}
                 />
                 <Tooltip
                   formatter={(value) => [formatCurrency(Number(value)), "Amount"]}

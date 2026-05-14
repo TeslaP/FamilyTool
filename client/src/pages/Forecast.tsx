@@ -113,8 +113,8 @@ export function Forecast() {
 
       {/* Hero remaining metric */}
       <div className="bg-white border border-stone-200 rounded-lg p-6 text-center mb-6">
-        <p className="text-xs text-stone-500 uppercase tracking-wide">Remaining after fixed costs</p>
-        <p className={cn("text-3xl font-bold mt-1", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
+        <p className="text-sm text-stone-500 font-normal">Remaining after fixed costs</p>
+        <p className={cn("text-4xl font-light mt-1", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
           {formatCurrency(remaining)}
         </p>
         <p className="text-xs text-stone-400 mt-1">
@@ -127,7 +127,7 @@ export function Forecast() {
         {/* Fixed costs */}
         <div className="bg-white border border-stone-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-stone-700">Fixed costs</h3>
+            <h3 className="text-base font-medium text-stone-700">Fixed costs</h3>
             <span className="text-sm font-semibold text-stone-900">{formatCurrency(totalFixed)}</span>
           </div>
           <div className="space-y-2">
@@ -149,7 +149,7 @@ export function Forecast() {
         {/* Variable costs */}
         <div className="bg-white border border-stone-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-stone-700">Variable costs (avg)</h3>
+            <h3 className="text-base font-medium text-stone-700">Variable costs (avg)</h3>
             <span className="text-sm font-semibold text-stone-900">{formatCurrency(totalVariable)}</span>
           </div>
           <div className="space-y-2">
@@ -171,7 +171,7 @@ export function Forecast() {
         {/* Savings & summary */}
         <div className="bg-white border border-stone-200 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-medium text-stone-700">Summary</h3>
+            <h3 className="text-base font-medium text-stone-700">Summary</h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
