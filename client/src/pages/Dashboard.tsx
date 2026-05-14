@@ -343,7 +343,7 @@ function OverviewMode({
         <button
           onClick={onSwitchToDetail}
           className={cn(
-            "text-[6.5rem] font-light tracking-tight leading-none hover:opacity-80 transition-opacity cursor-pointer",
+            "text-[6.5rem] font-light tracking-tight leading-none tabular-nums hover:opacity-80 transition-opacity cursor-pointer",
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >

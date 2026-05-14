@@ -140,7 +140,7 @@ export function Review() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <h2 className="text-xl font-semibold text-stone-900">Review</h2>
+          <h2 className="text-xl font-medium text-stone-900">Review</h2>
           {transactions && (
             <span className="text-sm text-stone-500">({transactions.length} items)</span>
           )}
@@ -252,7 +252,7 @@ export function Review() {
                   >
                     {tx.rawDescription}
                   </td>
-                  <td className="p-3 text-right text-stone-900 whitespace-nowrap">
+                  <td className="p-3 text-right text-stone-900 whitespace-nowrap tabular-nums">
                     {formatCurrency(tx.amount)}
                   </td>
                   <td className="p-3">

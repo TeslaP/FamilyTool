@@ -62,7 +62,7 @@ export function Import() {
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold text-stone-900 mb-10">Import</h2>
+      <h2 className="text-2xl font-medium text-stone-900 mb-10">Import</h2>
 
       {/* Step indicator */}
       <div className="flex items-center justify-center mb-12">

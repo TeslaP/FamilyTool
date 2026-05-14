@@ -108,7 +108,7 @@ export function Forecast() {
   if (allTransactions.length === 0) {
     return (
       <div className="p-6">
-        <h2 className="text-xl font-semibold text-stone-900 mb-4">Forecast</h2>
+        <h2 className="text-xl font-medium text-stone-900 mb-4">Forecast</h2>
         <div className="bg-white border border-stone-100 rounded-lg p-12 text-center">
           <h3 className="text-sm font-medium text-stone-900">Not enough data</h3>
           <p className="text-sm text-stone-500 mt-1">Import at least one month of transactions to see forecasts.</p>
@@ -120,7 +120,7 @@ export function Forecast() {
   return (
     <div className="p-6">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-2xl font-semibold text-stone-900">Forecast</h2>
+        <h2 className="text-2xl font-medium text-stone-900">Forecast</h2>
         <MonthSelector month={selectedMonth} range={range} onChange={setSelectedMonth} onRangeChange={setRange} />
       </div>
 
@@ -154,7 +154,7 @@ export function Forecast() {
         <p className="text-sm text-stone-400 font-normal">
           Remaining after fixed costs{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
         </p>
-        <p className={cn("text-4xl font-light mt-1", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
+        <p className={cn("text-4xl font-light mt-1 tabular-nums", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
           {formatCurrency(remaining)}
         </p>
         <p className="text-xs text-stone-400 mt-1">
@@ -178,7 +178,7 @@ export function Forecast() {
                   type="number"
                   value={getValue(item.key, item.amount)}
                   onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                  className="w-20 text-right text-sm border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
+                  className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
                 />
               </div>
             ))}
@@ -200,7 +200,7 @@ export function Forecast() {
                   type="number"
                   value={getValue(item.key, item.amount)}
                   onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                  className="w-20 text-right text-sm border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
+                  className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
                 />
               </div>
             ))}
