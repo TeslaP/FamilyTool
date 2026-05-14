@@ -107,12 +107,12 @@ export function Dashboard() {
   return (
     <div className="p-6 bg-stone-50 min-h-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-8">
         <MonthSelector month={month} onChange={setMonth} />
-        <div className="flex border border-stone-200 rounded-md overflow-hidden text-xs">
+        <div className="flex border border-stone-200 rounded-lg overflow-hidden text-sm">
           <button
             className={cn(
-              "px-3 py-1",
+              "px-4 py-2",
               mode === "overview"
                 ? "bg-stone-900 text-white"
                 : "bg-white text-stone-600"
@@ -123,7 +123,7 @@ export function Dashboard() {
           </button>
           <button
             className={cn(
-              "px-3 py-1",
+              "px-4 py-2",
               mode === "detail"
                 ? "bg-stone-900 text-white"
                 : "bg-white text-stone-600"
@@ -157,6 +157,9 @@ export function Dashboard() {
           savingsRate={savingsRate}
           chartData={chartData}
           month={month}
+          summary={summary}
+          summaryLoading={summaryLoading}
+          onGenerateSummary={handleGenerateSummary}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
       ) : (
@@ -187,6 +190,9 @@ function OverviewMode({
   savingsRate,
   chartData,
   month,
+  summary,
+  summaryLoading,
+  onGenerateSummary,
   onCategoryClick,
 }: {
   netCashflow: number;
@@ -195,24 +201,27 @@ function OverviewMode({
   savingsRate: number;
   chartData: { name: string; amount: number; id: number }[];
   month: string;
+  summary: string | null;
+  summaryLoading: boolean;
+  onGenerateSummary: () => void;
   onCategoryClick: (id: number) => void;
 }) {
   return (
     <div className="space-y-8">
       {/* Hero metric */}
-      <div className="text-center py-8">
-        <p className="text-xs uppercase tracking-wide text-stone-500 mb-2">
-          Net Cashflow
+      <div className="text-center py-12">
+        <p className="text-sm text-stone-500 font-normal mb-2">
+          Available this month
         </p>
         <p
           className={cn(
-            "text-5xl font-bold",
-            netCashflow >= 0 ? "text-green-600" : "text-red-600"
+            "text-hero font-light",
+            netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
           {formatCurrency(netCashflow)}
         </p>
-        <div className="flex items-center justify-center gap-6 mt-4 text-sm text-stone-600">
+        <div className="flex items-center justify-center gap-6 mt-6 text-base text-stone-600">
           <span>
             Income: <span className="font-medium text-stone-900">{formatCurrency(totalIncome)}</span>
           </span>
@@ -225,13 +234,31 @@ function OverviewMode({
         </div>
       </div>
 
+      {/* AI Reflection */}
+      {summary ? (
+        <div className="bg-white border border-stone-200 rounded-xl p-6">
+          <p className="text-base text-stone-600 leading-relaxed italic">{summary}</p>
+        </div>
+      ) : (
+        <div className="bg-white border border-stone-200 rounded-xl p-6 text-center">
+          <p className="text-sm text-stone-500 mb-3">Generate a reflection on this month</p>
+          <button
+            onClick={onGenerateSummary}
+            disabled={summaryLoading}
+            className="border border-stone-300 text-stone-600 hover:bg-stone-50 rounded-lg px-4 py-2 text-sm disabled:opacity-50"
+          >
+            {summaryLoading ? "Generating..." : "Reflect"}
+          </button>
+        </div>
+      )}
+
       {/* Full-width category bar chart */}
       {chartData.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-lg p-6">
+        <div className="bg-white border border-stone-200 rounded-xl p-8">
           <h3 className="text-sm font-medium text-stone-700 mb-4">
             Spending by Category
           </h3>
-          <ResponsiveContainer width="100%" height={300}>
+          <ResponsiveContainer width="100%" height={280}>
             <BarChart data={chartData} layout="vertical" margin={{ left: 80 }}>
               <XAxis type="number" tickFormatter={(v) => `€${v}`} />
               <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
