@@ -14,8 +14,16 @@ const backgrounds = [
   "/backgrounds/10-calm-water.jpg",
 ];
 
+function getTimeGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 6) return "Quiet hours";
+  if (hour < 12) return "Good morning";
+  if (hour < 17) return "Good afternoon";
+  if (hour < 21) return "Good evening";
+  return "Late reflection";
+}
+
 const welcomeMessages = [
-  "Welcome back",
   "Your monthly finance space",
   "A calm moment to reflect",
   "Take a look at where things stand",
@@ -51,12 +59,29 @@ export function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden">
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(12px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInScale {
+          from { opacity: 0; transform: scale(0.95); }
+          to { opacity: 1; transform: scale(1); }
+        }
+        .animate-entrance { opacity: 0; animation-fill-mode: forwards; animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+      `}</style>
+
       {/* Background image */}
       <div className="absolute inset-0">
         <img
           src={bgImage}
           alt=""
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover animate-entrance"
+          style={{ animationName: "fadeIn", animationDuration: "1.2s", animationDelay: "0s" }}
         />
         {/* Soft overlay for readability — no blur, just darken slightly */}
         <div className="absolute inset-0 bg-stone-900/20" />
@@ -67,24 +92,34 @@ export function Login() {
       {/* Login card */}
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Logo */}
-        <div className="flex justify-center mb-6">
+        <div
+          className="flex justify-center mb-6 animate-entrance"
+          style={{ animationName: "fadeInScale", animationDuration: "0.8s", animationDelay: "0.2s" }}
+        >
           <HorizonLogo size={56} variant="light" className="backdrop-blur-sm shadow-lg border border-white/30" />
         </div>
 
-        {/* Title */}
-        <h1 className="text-3xl font-light text-white text-center mb-2">
-          Family Finance
+        {/* Time-aware greeting */}
+        <h1
+          className="text-3xl font-light text-white text-center mb-2 animate-entrance"
+          style={{ animationName: "fadeIn", animationDuration: "0.8s", animationDelay: "0.4s" }}
+        >
+          {getTimeGreeting()}
         </h1>
 
         {/* Rotating welcome message */}
-        <p className="text-base text-white/70 text-center mb-8">
+        <p
+          className="text-base text-white/70 text-center mb-8 animate-entrance"
+          style={{ animationName: "fadeIn", animationDuration: "0.8s", animationDelay: "0.6s" }}
+        >
           {welcomeMessage}
         </p>
 
         {/* Form card */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white/60 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/40 space-y-5"
+          className="bg-white/60 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/40 space-y-5 animate-entrance"
+          style={{ animationName: "fadeInUp", animationDuration: "0.8s", animationDelay: "0.8s" }}
         >
           {error && (
             <p className="text-sm text-red-600 text-center">{error}</p>
