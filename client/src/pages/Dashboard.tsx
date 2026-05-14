@@ -15,6 +15,7 @@ import { useMonthParam } from "../hooks/useMonthParam";
 import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
+import { PageLoader } from "../components/PageLoader";
 import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 
 // --- Weekly Pacing Section (fetches its own data) ---
@@ -207,9 +208,7 @@ export function Dashboard() {
   };
 
   if (loading) {
-    return (
-      <div className="p-6 text-stone-500">Loading...</div>
-    );
+    return <PageLoader />;
   }
 
   if (error) {

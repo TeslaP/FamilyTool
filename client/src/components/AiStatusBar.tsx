@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../api/client";
-import { Loader2 } from "lucide-react";
+import { HorizonLogoAnimated } from "./HorizonLogoAnimated";
 
 export function AiStatusBar() {
   const [status, setStatus] = useState<{ uncategorised: number; categorised: number; total: number; isProcessing: boolean } | null>(null);
@@ -36,7 +36,7 @@ export function AiStatusBar() {
 
   return (
     <div className="fixed bottom-4 right-4 bg-white border border-stone-200 rounded-xl shadow-card px-4 py-3 flex items-center gap-3 z-40">
-      <Loader2 size={16} className="text-stone-500 animate-spin" />
+      <HorizonLogoAnimated size={24} mode="breathe" />
       <div className="text-sm">
         <p className="text-stone-700 font-medium">AI categorising...</p>
         <p className="text-stone-500">{status.uncategorised} remaining · {progress}% done</p>

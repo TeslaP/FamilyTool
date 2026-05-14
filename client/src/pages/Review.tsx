@@ -4,6 +4,7 @@ import { useApi } from "../hooks/useApi";
 import { useMonthParam } from "../hooks/useMonthParam";
 import { MonthSelector } from "../components/MonthSelector";
 import { CategoryDropdown } from "../components/CategoryDropdown";
+import { PageLoader } from "../components/PageLoader";
 import { formatCurrency, getNextMonth, cn } from "../lib/utils";
 import { CheckSquare, Bookmark, Trash2 } from "lucide-react";
 import type { Transaction } from "../types";
@@ -133,7 +134,7 @@ export function Review() {
     }
   };
 
-  if (loading) return <div className="p-6 text-stone-500">Loading...</div>;
+  if (loading) return <PageLoader />;
 
   return (
     <div className="p-6">
