@@ -69,6 +69,21 @@ export function createTransactionsRouter(db: Database.Database): Router {
     res.json(updated);
   });
 
+  router.delete("/:id", (req, res) => {
+    const { id } = req.params;
+
+    const existing = db.prepare("SELECT * FROM transactions WHERE id = ?").get(Number(id)) as any;
+    if (!existing) {
+      res.status(404).json({ error: "Transaction not found" });
+      return;
+    }
+
+    db.prepare("DELETE FROM transactions WHERE id = ?").run(Number(id));
+    recalculateAffectedMonths(db, [existing.transactionDate]);
+
+    res.json({ deleted: true, id: Number(id) });
+  });
+
   router.post("/:id/create-rule", (req, res) => {
     const { id } = req.params;
     const { matchType, matchValue } = req.body;

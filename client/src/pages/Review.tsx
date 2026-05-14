@@ -4,8 +4,38 @@ import { useApi } from "../hooks/useApi";
 import { MonthSelector } from "../components/MonthSelector";
 import { CategoryDropdown } from "../components/CategoryDropdown";
 import { formatCurrency, getCurrentMonth, cn } from "../lib/utils";
-import { CheckSquare, Bookmark } from "lucide-react";
+import { CheckSquare, Bookmark, Trash2 } from "lucide-react";
 import type { Transaction } from "../types";
+
+function ConfirmModal({
+  open,
+  onConfirm,
+  onCancel,
+  message
+}: {
+  open: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  message: string;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0 bg-stone-900/20 backdrop-blur-sm" onClick={onCancel} />
+      <div className="relative bg-white rounded-xl shadow-lg p-6 max-w-sm mx-4">
+        <p className="text-base text-stone-700 mb-4">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button onClick={onCancel} className="px-4 py-2 text-sm border border-stone-200 rounded-lg text-stone-600 hover:bg-stone-50">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className="px-4 py-2 text-sm bg-stone-900 text-white rounded-lg hover:bg-stone-800">
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export function Review() {
   const [month, setMonth] = useState(getCurrentMonth());
@@ -13,6 +43,7 @@ export function Review() {
   const [editingMerchant, setEditingMerchant] = useState<number | null>(null);
   const [merchantValue, setMerchantValue] = useState("");
   const [bulkCategory, setBulkCategory] = useState<number | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: number } | null>(null);
 
   const { data: transactions, loading, refetch } = useApi(
     () => api.getTransactions({ month, needsReview: true }),
@@ -45,6 +76,21 @@ export function Review() {
     }
     setSelected(new Set());
     setBulkCategory(null);
+    refetch();
+  };
+
+  const handleDeleteSingle = async (id: number) => {
+    await api.deleteTransaction(id);
+    setDeleteConfirm(null);
+    refetch();
+  };
+
+  const handleDeleteBulk = async () => {
+    for (const id of selected) {
+      await api.deleteTransaction(id);
+    }
+    setSelected(new Set());
+    setDeleteConfirm(null);
     refetch();
   };
 
@@ -94,6 +140,12 @@ export function Review() {
             className="px-3 py-1 text-sm bg-stone-900 text-white rounded-md disabled:opacity-50"
           >
             Assign
+          </button>
+          <button
+            onClick={() => setDeleteConfirm({ type: "bulk" })}
+            className="px-3 py-1 text-sm border border-stone-200 rounded-md text-stone-500 hover:text-red-600 hover:border-red-200"
+          >
+            Delete selected
           </button>
         </div>
       )}
@@ -202,15 +254,24 @@ export function Review() {
                     </span>
                   </td>
                   <td className="p-3">
-                    {tx.merchantName && tx.categoryId && (
+                    <div className="flex items-center gap-1">
+                      {tx.merchantName && tx.categoryId && (
+                        <button
+                          onClick={() => handleCreateRule(tx)}
+                          title="Save as rule"
+                          className="text-stone-400 hover:text-stone-700"
+                        >
+                          <Bookmark size={14} />
+                        </button>
+                      )}
                       <button
-                        onClick={() => handleCreateRule(tx)}
-                        title="Save as rule"
-                        className="text-stone-400 hover:text-stone-700"
+                        onClick={() => setDeleteConfirm({ type: "single", id: tx.id })}
+                        title="Delete"
+                        className="text-stone-400 hover:text-red-500"
                       >
-                        <Bookmark size={14} />
+                        <Trash2 size={14} />
                       </button>
-                    )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -218,6 +279,23 @@ export function Review() {
           </table>
         </div>
       )}
+
+      <ConfirmModal
+        open={!!deleteConfirm}
+        onConfirm={() => {
+          if (deleteConfirm?.type === "single" && deleteConfirm.id) {
+            handleDeleteSingle(deleteConfirm.id);
+          } else if (deleteConfirm?.type === "bulk") {
+            handleDeleteBulk();
+          }
+        }}
+        onCancel={() => setDeleteConfirm(null)}
+        message={
+          deleteConfirm?.type === "bulk"
+            ? `Delete ${selected.size} transactions? They will be removed from calculations and dashboard views.`
+            : "Delete this transaction? It will be removed from calculations and dashboard views."
+        }
+      />
     </div>
   );
 }

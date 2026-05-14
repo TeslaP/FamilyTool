@@ -80,6 +80,12 @@ class ApiClient {
     });
   }
 
+  async deleteTransaction(id: number) {
+    return this.request<{ deleted: boolean; id: number }>(`/transactions/${id}`, {
+      method: "DELETE",
+    });
+  }
+
   async createRule(transactionId: number, data: { matchType: string; matchValue: string }) {
     return this.request<any>(`/transactions/${transactionId}/create-rule`, {
       method: "POST",
