@@ -2,31 +2,45 @@ import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { formatMonth, getPreviousMonth, getNextMonth, getCurrentMonth, cn } from "../lib/utils";
 
+export interface MonthRange {
+  from: string;
+  to: string;
+  label?: string;
+}
+
 interface Props {
   month: string;
+  range?: MonthRange | null;
   onChange: (month: string) => void;
+  onRangeChange?: (range: MonthRange | null) => void;
 }
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-const PRESETS = [
-  { label: "This month", getValue: () => getCurrentMonth() },
-  { label: "Last month", getValue: () => getPreviousMonth(getCurrentMonth()) },
-  { label: "Last 3 months", getValue: () => getPreviousMonth(getPreviousMonth(getCurrentMonth())) },
-  { label: "Last 6 months", getValue: () => {
-    let m = getCurrentMonth();
-    for (let i = 0; i < 5; i++) m = getPreviousMonth(m);
-    return m;
-  }},
-];
+function getPresets() {
+  const current = getCurrentMonth();
+  const last = getPreviousMonth(current);
+  const m3 = getPreviousMonth(getPreviousMonth(last));
+  const m6 = (() => { let m = current; for (let i = 0; i < 5; i++) m = getPreviousMonth(m); return m; })();
+  const yearStart = `${current.split("-")[0]}-01`;
 
-export function MonthSelector({ month, onChange }: Props) {
+  return [
+    { label: "This month", from: current, to: current },
+    { label: "Last month", from: last, to: last },
+    { label: "Last 3 months", from: m3, to: current },
+    { label: "Last 6 months", from: m6, to: current },
+    { label: "Year to date", from: yearStart, to: current },
+  ];
+}
+
+export function MonthSelector({ month, range, onChange, onRangeChange }: Props) {
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(() => parseInt(month.split("-")[0]));
   const ref = useRef<HTMLDivElement>(null);
 
   const currentMonthNum = parseInt(month.split("-")[1]);
   const currentYear = parseInt(month.split("-")[0]);
+  const presets = getPresets();
 
   // Close on click outside
   useEffect(() => {
@@ -42,19 +56,34 @@ export function MonthSelector({ month, onChange }: Props) {
   const selectMonth = (monthNum: number) => {
     const selected = `${viewYear}-${String(monthNum).padStart(2, "0")}`;
     onChange(selected);
+    onRangeChange?.(null);
     setOpen(false);
   };
 
-  const selectPreset = (getValue: () => string) => {
-    onChange(getValue());
+  const selectPreset = (preset: { label: string; from: string; to: string }) => {
+    onChange(preset.from);
+    if (preset.from === preset.to) {
+      onRangeChange?.(null);
+    } else {
+      onRangeChange?.({ from: preset.from, to: preset.to, label: preset.label });
+    }
     setOpen(false);
   };
+
+  // Display label
+  const displayLabel = range?.label
+    ? range.label
+    : formatMonth(month);
+
+  const displaySubtitle = range && range.from !== range.to
+    ? `${formatMonth(range.from)} – ${formatMonth(range.to)}`
+    : null;
 
   return (
     <div className="relative" ref={ref}>
       <div className="flex items-center gap-3">
         <button
-          onClick={() => onChange(getPreviousMonth(month))}
+          onClick={() => { onChange(getPreviousMonth(month)); onRangeChange?.(null); }}
           className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
         >
           <ChevronLeft size={20} className="text-stone-600" />
@@ -62,14 +91,19 @@ export function MonthSelector({ month, onChange }: Props) {
 
         <button
           onClick={() => { setViewYear(currentYear); setOpen(!open); }}
-          className="flex items-center gap-1.5 text-base font-medium text-stone-900 hover:bg-stone-100 px-3 py-1.5 rounded-md transition-colors min-w-[160px] justify-center"
+          className="flex flex-col items-center gap-0.5 hover:bg-stone-100 px-3 py-1.5 rounded-md transition-colors min-w-[160px]"
         >
-          {formatMonth(month)}
-          <ChevronDown size={14} className={cn("text-stone-400 transition-transform", open && "rotate-180")} />
+          <span className="flex items-center gap-1.5 text-base font-medium text-stone-900">
+            {displayLabel}
+            <ChevronDown size={14} className={cn("text-stone-400 transition-transform", open && "rotate-180")} />
+          </span>
+          {displaySubtitle && (
+            <span className="text-xs text-stone-400">{displaySubtitle}</span>
+          )}
         </button>
 
         <button
-          onClick={() => onChange(getNextMonth(month))}
+          onClick={() => { onChange(getNextMonth(month)); onRangeChange?.(null); }}
           className="p-1.5 hover:bg-stone-100 rounded-md transition-colors disabled:opacity-30"
           disabled={month >= getCurrentMonth()}
         >
@@ -95,8 +129,10 @@ export function MonthSelector({ month, onChange }: Props) {
           <div className="grid grid-cols-4 gap-1 mb-4">
             {MONTHS.map((name, i) => {
               const monthNum = i + 1;
-              const isSelected = viewYear === currentYear && monthNum === currentMonthNum;
-              const isFuture = `${viewYear}-${String(monthNum).padStart(2, "0")}` > getCurrentMonth();
+              const monthStr = `${viewYear}-${String(monthNum).padStart(2, "0")}`;
+              const isSelected = !range && viewYear === currentYear && monthNum === currentMonthNum;
+              const isInRange = range && monthStr >= range.from && monthStr <= range.to;
+              const isFuture = monthStr > getCurrentMonth();
 
               return (
                 <button
@@ -105,7 +141,9 @@ export function MonthSelector({ month, onChange }: Props) {
                   disabled={isFuture}
                   className={cn(
                     "py-1.5 px-2 text-sm rounded-md transition-colors",
-                    isSelected ? "bg-stone-700 text-white" : "text-stone-700 hover:bg-stone-100",
+                    isSelected ? "bg-stone-700 text-white" :
+                    isInRange ? "bg-stone-200 text-stone-900" :
+                    "text-stone-700 hover:bg-stone-100",
                     isFuture && "opacity-30 cursor-not-allowed"
                   )}
                 >
@@ -117,11 +155,16 @@ export function MonthSelector({ month, onChange }: Props) {
 
           {/* Presets */}
           <div className="border-t border-stone-100 pt-3 space-y-1">
-            {PRESETS.map((preset) => (
+            {presets.map((preset) => (
               <button
                 key={preset.label}
-                onClick={() => selectPreset(preset.getValue)}
-                className="w-full text-left px-2 py-1.5 text-sm text-stone-600 hover:bg-stone-50 hover:text-stone-900 rounded-md transition-colors"
+                onClick={() => selectPreset(preset)}
+                className={cn(
+                  "w-full text-left px-2 py-1.5 text-sm rounded-md transition-colors",
+                  range?.label === preset.label
+                    ? "bg-stone-100 text-stone-900 font-medium"
+                    : "text-stone-600 hover:bg-stone-50 hover:text-stone-900"
+                )}
               >
                 {preset.label}
               </button>

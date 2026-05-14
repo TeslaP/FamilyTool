@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
-import { MonthSelector } from "../components/MonthSelector";
+import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { CategoryDropdown } from "../components/CategoryDropdown";
-import { formatCurrency, getCurrentMonth, cn } from "../lib/utils";
+import { formatCurrency, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
 import { CheckSquare, Bookmark, Trash2 } from "lucide-react";
 import type { Transaction } from "../types";
 
@@ -39,6 +39,7 @@ function ConfirmModal({
 
 export function Review() {
   const [month, setMonth] = useState(getCurrentMonth());
+  const [range, setRange] = useState<MonthRange | null>(null);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [editingMerchant, setEditingMerchant] = useState<number | null>(null);
   const [merchantValue, setMerchantValue] = useState("");
@@ -46,8 +47,20 @@ export function Review() {
   const [deleteConfirm, setDeleteConfirm] = useState<{ type: "single" | "bulk"; id?: number } | null>(null);
 
   const { data: transactions, loading, refetch } = useApi(
-    () => api.getTransactions({ month, needsReview: true }),
-    [month]
+    async () => {
+      if (range) {
+        const months: string[] = [];
+        let m = range.from;
+        while (m <= range.to) {
+          months.push(m);
+          m = getNextMonth(m);
+        }
+        const results = await Promise.all(months.map(mo => api.getTransactions({ month: mo, needsReview: true })));
+        return results.flat();
+      }
+      return api.getTransactions({ month, needsReview: true });
+    },
+    [month, range]
   );
   const { data: categories } = useApi(() => api.getCategories(), []);
 
@@ -121,7 +134,7 @@ export function Review() {
             <span className="text-sm text-stone-500">({transactions.length} items)</span>
           )}
         </div>
-        <MonthSelector month={month} onChange={setMonth} />
+        <MonthSelector month={month} range={range} onChange={setMonth} onRangeChange={setRange} />
       </div>
 
       {/* Bulk action bar */}

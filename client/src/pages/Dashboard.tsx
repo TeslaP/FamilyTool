@@ -11,21 +11,34 @@ import {
 import { LayoutDashboard } from "lucide-react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
-import { MonthSelector } from "../components/MonthSelector";
+import { MonthSelector, type MonthRange } from "../components/MonthSelector";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
-import { formatCurrency, getCurrentMonth, cn } from "../lib/utils";
+import { formatCurrency, getCurrentMonth, getNextMonth, cn } from "../lib/utils";
 
 export function Dashboard() {
   const [month, setMonth] = useState(getCurrentMonth());
+  const [range, setRange] = useState<MonthRange | null>(null);
   const [mode, setMode] = useState<"overview" | "detail">("overview");
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const navigate = useNavigate();
 
   const { data: transactions, loading, error } = useApi(
-    () => api.getTransactions({ month }),
-    [month]
+    async () => {
+      if (range) {
+        const months: string[] = [];
+        let m = range.from;
+        while (m <= range.to) {
+          months.push(m);
+          m = getNextMonth(m);
+        }
+        const results = await Promise.all(months.map(mo => api.getTransactions({ month: mo })));
+        return results.flat();
+      }
+      return api.getTransactions({ month });
+    },
+    [month, range]
   );
   const { data: categories } = useApi(() => api.getCategories(), []);
 
@@ -108,7 +121,7 @@ export function Dashboard() {
     <div className="p-6 bg-stone-50 min-h-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
-        <MonthSelector month={month} onChange={setMonth} />
+        <MonthSelector month={month} range={range} onChange={setMonth} onRangeChange={setRange} />
         <div className="flex border border-stone-200 rounded-lg overflow-hidden text-sm">
           <button
             className={cn(
