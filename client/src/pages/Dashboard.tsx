@@ -226,9 +226,15 @@ function OverviewMode({
         <p className="text-lg text-stone-400 mb-4">
           Available in {formatMonth(month)}
         </p>
-        <p className={cn("text-[6.5rem] font-light tracking-tight leading-none", netCashflow >= 0 ? "text-green-700" : "text-red-600")}>
+        <Link
+          to={`/pacing?month=${month}`}
+          className={cn(
+            "text-[6.5rem] font-light tracking-tight leading-none hover:opacity-80 transition-opacity cursor-pointer",
+            netCashflow >= 0 ? "text-green-700" : "text-red-600"
+          )}
+        >
           {formatCurrency(netCashflow)}
-        </p>
+        </Link>
         <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
           <span>Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span></span>
           <span>Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span></span>

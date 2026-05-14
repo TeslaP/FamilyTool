@@ -1,6 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
+import { LayoutDashboard, Activity, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
 import { cn, getCurrentMonth } from "../lib/utils";
 import { useApi } from "../hooks/useApi";
@@ -8,6 +8,7 @@ import { api } from "../api/client";
 
 const navItems = [
   { to: "/", icon: LayoutDashboard, label: "Dashboard" },
+  { to: "/trajectory", icon: Activity, label: "Trajectory" },
   { to: "/import", icon: Upload, label: "Import" },
   { to: "/review", icon: CheckSquare, label: "Review" },
   { to: "/forecast", icon: TrendingUp, label: "Forecast" },
