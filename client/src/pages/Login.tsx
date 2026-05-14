@@ -3,10 +3,16 @@ import { useAuth } from "../hooks/useAuth";
 import { HorizonLogo } from "../components/HorizonLogo";
 
 const backgrounds = [
-  "/backgrounds/mountains-fog.jpg",
-  "/backgrounds/autumn-lake.jpg",
-  "/backgrounds/misty-forest.jpg",
-  "/backgrounds/snow-peaks.jpg",
+  "/backgrounds/01-mountain-fog.jpg",
+  "/backgrounds/02-autumn-lake.jpg",
+  "/backgrounds/03-misty-forest.jpg",
+  "/backgrounds/04-snow-peaks.jpg",
+  "/backgrounds/05-clouds-mountain.jpg",
+  "/backgrounds/06-morning-valley.jpg",
+  "/backgrounds/07-peaks-dawn.jpg",
+  "/backgrounds/08-still-lake.jpg",
+  "/backgrounds/09-winter-field.jpg",
+  "/backgrounds/10-calm-water.jpg",
 ];
 
 const welcomeMessages = [

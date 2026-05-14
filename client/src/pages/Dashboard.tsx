@@ -209,27 +209,27 @@ function OverviewMode({
   return (
     <div>
       {/* Hero metric */}
-      <div className="text-center py-16">
-        <p className="text-base text-stone-400 mb-3">
+      <div className="text-center py-20 min-h-[38vh] flex flex-col items-center justify-center">
+        <p className="text-lg text-stone-400 mb-4">
           Available this month
         </p>
         <p
           className={cn(
-            "text-hero",
+            "text-[6.5rem] font-light tracking-tight leading-none",
             netCashflow >= 0 ? "text-green-700" : "text-red-600"
           )}
         >
           {formatCurrency(netCashflow)}
         </p>
-        <div className="flex items-center justify-center gap-6 mt-4 text-sm text-stone-500">
+        <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
           <span>
-            Income: <span className="font-medium">{formatCurrency(totalIncome)}</span>
+            Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span>
           </span>
           <span>
-            Expenses: <span className="font-medium">{formatCurrency(totalExpenses)}</span>
+            Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span>
           </span>
           <span>
-            <span className="font-medium">{savingsRate}%</span> saved
+            <span className="font-medium text-stone-700">{savingsRate}%</span> saved
           </span>
         </div>
       </div>
