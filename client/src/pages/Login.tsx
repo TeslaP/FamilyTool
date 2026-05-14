@@ -10,7 +10,6 @@ const backgrounds = [
   "/backgrounds/05-clouds-mountain.jpg",
   "/backgrounds/06-morning-valley.jpg",
   "/backgrounds/07-peaks-dawn.jpg",
-  "/backgrounds/08-still-lake.jpg",
   "/backgrounds/09-winter-field.jpg",
   "/backgrounds/10-calm-water.jpg",
 ];
@@ -59,10 +58,10 @@ export function Login() {
           alt=""
           className="w-full h-full object-cover"
         />
-        {/* Soft overlay for readability — warm, desaturated */}
-        <div className="absolute inset-0 bg-stone-900/30 backdrop-blur-[2px]" />
+        {/* Soft overlay for readability — no blur, just darken slightly */}
+        <div className="absolute inset-0 bg-stone-900/20" />
         {/* Additional warm tint */}
-        <div className="absolute inset-0 bg-gradient-to-b from-stone-100/20 via-transparent to-stone-900/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-stone-100/10 via-transparent to-stone-900/30" />
       </div>
 
       {/* Login card */}
