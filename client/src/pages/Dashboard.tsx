@@ -220,76 +220,52 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
 }) {
   return (
-    <div>
-      {/* Hero metric */}
-      <div className="text-center py-20 min-h-[38vh] flex flex-col items-center justify-center">
+    <div className="flex flex-col h-[calc(100vh-5rem)] justify-between">
+      {/* Hero section — upper portion */}
+      <div className="flex-1 flex flex-col items-center justify-center">
         <p className="text-lg text-stone-400 mb-4">
           Available this month
         </p>
-        <p
-          className={cn(
-            "text-[6.5rem] font-light tracking-tight leading-none",
-            netCashflow >= 0 ? "text-green-700" : "text-red-600"
-          )}
-        >
+        <p className={cn("text-[6.5rem] font-light tracking-tight leading-none", netCashflow >= 0 ? "text-green-700" : "text-red-600")}>
           {formatCurrency(netCashflow)}
         </p>
         <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
-          <span>
-            Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span>
-          </span>
-          <span>
-            Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span>
-          </span>
-          <span>
-            <span className="font-medium text-stone-700">{savingsRate}%</span> saved
-          </span>
+          <span>Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span></span>
+          <span>Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span></span>
+          <span><span className="font-medium text-stone-700">{savingsRate}%</span> saved</span>
         </div>
       </div>
 
-      {/* AI Reflection */}
-      <div className="text-center">
+      {/* Category grid — middle */}
+      <div className="py-6">
+        <div className="grid grid-cols-4 gap-3 max-w-3xl mx-auto">
+          {chartData.slice(0, 8).map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => onCategoryClick(cat.id)}
+              className="bg-white border border-stone-100 rounded-xl p-4 text-center hover:shadow-card hover:border-stone-200 transition-all"
+            >
+              <p className="text-sm text-stone-500 mb-1">{cat.name}</p>
+              <p className="text-lg font-medium text-stone-900">{formatCurrency(cat.amount)}</p>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Reflect link — bottom */}
+      <div className="pb-8 text-center">
         {summary ? (
-          <p className="font-editorial text-xl text-stone-600 leading-relaxed italic max-w-lg mx-auto">
-            {summary}
-          </p>
+          <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
         ) : (
           <button
             onClick={onGenerateSummary}
             disabled={summaryLoading}
-            className="font-editorial text-lg text-stone-400 italic hover:text-stone-600 transition-colors disabled:opacity-50"
+            className="font-editorial text-base text-stone-400 italic hover:text-stone-600 transition-colors"
           >
-            {summaryLoading ? "Generating..." : "Reflect on this month →"}
+            {summaryLoading ? "Reflecting..." : "Reflect on this month →"}
           </button>
         )}
       </div>
-
-      {/* Full-width category bar chart */}
-      {chartData.length > 0 && (
-        <div className="mt-8 bg-white border border-stone-200 rounded-xl p-8">
-          <h3 className="text-sm font-medium text-stone-700 mb-4">
-            Spending by Category
-          </h3>
-          <ResponsiveContainer width="100%" height={280}>
-            <BarChart data={chartData} layout="vertical" margin={{ left: 80 }}>
-              <XAxis type="number" tickFormatter={(v) => `€${v}`} />
-              <YAxis type="category" dataKey="name" width={80} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value) => [formatCurrency(Number(value)), "Amount"]}
-              />
-              <Bar
-                dataKey="amount"
-                fill="#57534e"
-                radius={[0, 4, 4, 0]}
-                cursor="pointer"
-                onClick={(data: any) => {
-                  if (data?.id) onCategoryClick(data.id);
-                }}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
     </div>
   );
 }
