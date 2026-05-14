@@ -84,38 +84,38 @@ export function Login() {
         {/* Form card */}
         <form
           onSubmit={handleSubmit}
-          className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg space-y-5"
+          className="bg-white/60 backdrop-blur-md p-8 rounded-2xl shadow-lg border border-white/40 space-y-5"
         >
           {error && (
             <p className="text-sm text-red-600 text-center">{error}</p>
           )}
           <div>
-            <label className="block text-base text-stone-600 mb-1.5">
+            <label className="block text-base text-stone-500 mb-1.5">
               Username
             </label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 border border-stone-200/80 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-stone-700 bg-white/70"
+              className="w-full px-4 py-3 border border-white/60 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/50 text-stone-800 placeholder:text-stone-400"
               autoFocus
             />
           </div>
           <div>
-            <label className="block text-base text-stone-600 mb-1.5">
+            <label className="block text-base text-stone-500 mb-1.5">
               Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-stone-200/80 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-stone-700 bg-white/70"
+              className="w-full px-4 py-3 border border-white/60 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-white/50 bg-white/50 text-stone-800 placeholder:text-stone-400"
             />
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-stone-900 text-white rounded-xl text-base font-medium hover:bg-stone-800 disabled:opacity-50 transition-colors"
+            className="w-full py-3 bg-stone-700/80 backdrop-blur-sm text-white/90 rounded-xl text-base font-medium hover:bg-stone-700 disabled:opacity-50 transition-colors"
           >
             {loading ? "Signing in..." : "Sign in"}
           </button>
