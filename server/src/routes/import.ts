@@ -165,69 +165,67 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       }
     })();
 
-    // AI categorisation for uncategorised transactions
+    // Respond immediately — don't wait for AI
+    res.json({
+      imported,
+      duplicatesSkipped,
+      fileName,
+      aiStatus: "processing",
+    });
+
+    // AI categorisation runs in background (fire-and-forget)
     const uncategorised = db.prepare(
       "SELECT id, rawDescription FROM transactions WHERE sourceFileId = ? AND categorisationMethod IS NULL"
     ).all(fileId) as { id: number; rawDescription: string }[];
 
-    let aiCategorised = 0;
-    let aiFailed = 0;
-
     if (uncategorised.length > 0) {
+      console.log(`[Import] File ${fileId}: ${imported} imported, starting background AI for ${uncategorised.length} transactions...`);
+
       const aiInput = uncategorised.map((t, i) => ({ index: i, rawDescription: t.rawDescription }));
 
-      try {
-        const aiResult = await categoriseTransactions(db, aiInput);
-
-        // Apply AI results
+      categoriseTransactions(db, aiInput).then((aiResult) => {
         const updateStmt = db.prepare(
           "UPDATE transactions SET merchantName = ?, categoryId = ?, direction = ?, isRecurring = ?, confidence = ?, categorisationMethod = 'ai' WHERE id = ?"
         );
 
+        let aiCategorised = 0;
         for (const [index, result] of aiResult.results) {
           const txId = uncategorised[index].id;
           updateStmt.run(result.merchantName, result.categoryId, result.direction, result.isRecurring ? 1 : 0, result.confidence, txId);
           aiCategorised++;
         }
 
-        // Apply cached results
         for (const [index, cached] of aiResult.cached) {
           const txId = uncategorised[index].id;
           updateStmt.run(cached.merchantName, cached.categoryId, cached.direction, cached.isRecurring ? 1 : 0, cached.confidence, txId);
           aiCategorised++;
         }
 
-        // Mark failed
         const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
+        let aiFailed = 0;
         for (const index of aiResult.failed) {
           const txId = uncategorised[index].id;
           failStmt.run(txId);
           aiFailed++;
         }
-      } catch {
-        // AI failure should not break the import
+
+        db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(aiCategorised + aiFailed, fileId);
+
+        const dates = db.prepare("SELECT DISTINCT transactionDate FROM transactions WHERE sourceFileId = ?").all(fileId) as { transactionDate: string }[];
+        recalculateAffectedMonths(db, dates.map((d) => d.transactionDate));
+
+        console.log(`[Import] AI complete for file ${fileId}: ${aiCategorised} categorised, ${aiFailed} failed`);
+      }).catch((err) => {
+        console.error(`[Import] AI background error for file ${fileId}:`, err?.message || err);
         const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
         for (const t of uncategorised) {
           failStmt.run(t.id);
         }
-        aiFailed = uncategorised.length;
-      }
-
-      // Recalculate affected months
-      const dates = db.prepare("SELECT DISTINCT transactionDate FROM transactions WHERE sourceFileId = ?").all(fileId) as { transactionDate: string }[];
-      recalculateAffectedMonths(db, dates.map((d) => d.transactionDate));
+        db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(uncategorised.length, fileId);
+      });
+    } else {
+      db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(0, fileId);
     }
-
-    // Update import file stats
-    db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(aiCategorised + aiFailed, fileId);
-
-    res.json({
-      imported,
-      duplicatesSkipped,
-      aiCategorised,
-      aiFailed,
-      fileName,
-    });
   } catch (err: any) {
     console.error("Import confirm error:", err.message);
     res.status(500).json({ error: `Import failed: ${err.message}` });

@@ -154,17 +154,15 @@ export function Import() {
           <div className="text-base text-stone-600 space-y-1">
             <p>{result.imported} transactions imported</p>
             {result.duplicatesSkipped > 0 && <p>{result.duplicatesSkipped} duplicates skipped</p>}
-            <p>{result.aiCategorised} categorised by AI, {result.aiFailed} sent to review</p>
+            <p className="text-stone-400">AI categorisation running in background...</p>
           </div>
           <div className="mt-4 flex gap-3 justify-center">
             <button onClick={handleReset} className="px-6 py-3 text-base border border-stone-200 rounded-md text-stone-600 hover:bg-stone-50">
               Import another
             </button>
-            {result.aiFailed > 0 && (
-              <Link to="/review" className="px-6 py-3 text-base bg-stone-700 text-white rounded-md hover:bg-stone-600">
-                Review transactions
-              </Link>
-            )}
+            <Link to="/review" className="px-6 py-3 text-base bg-stone-700 text-white rounded-md hover:bg-stone-600">
+              Review transactions
+            </Link>
           </div>
         </div>
       )}
