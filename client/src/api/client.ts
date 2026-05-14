@@ -115,6 +115,14 @@ class ApiClient {
       body: JSON.stringify({ month }),
     });
   }
+
+  async getPacing(month: string) {
+    return this.request<any>(`/transactions/pacing?month=${month}`);
+  }
+
+  async getTrajectory(year: number) {
+    return this.request<any>(`/trajectory?year=${year}`);
+  }
 }
 
 export const api = new ApiClient();
