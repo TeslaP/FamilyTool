@@ -267,6 +267,7 @@ export function Dashboard() {
           }
         />
       ) : mode === "overview" ? (
+        <div key="overview" className="animate-fadeIn">
         <OverviewMode
           netCashflow={netCashflow}
           totalIncome={totalIncome}
@@ -280,7 +281,9 @@ export function Dashboard() {
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
           onSwitchToDetail={() => setMode("detail")}
         />
+        </div>
       ) : (
+        <div key="detail" className="animate-fadeIn">
         <DetailMode
           totalIncome={totalIncome}
           totalExpenses={totalExpenses}
@@ -295,6 +298,7 @@ export function Dashboard() {
           range={range}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
+        </div>
       )}
     </div>
   );

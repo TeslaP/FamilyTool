@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
@@ -26,6 +26,7 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
 }
 
 export function Layout() {
+  const location = useLocation();
   const { logout } = useAuth();
   const { data: reviewItems } = useApi(
     () => api.getTransactions({ month: getCurrentMonth(), needsReview: true }),
@@ -70,7 +71,9 @@ export function Layout() {
         </NavTooltip>
       </aside>
       <main className="flex-1 overflow-auto">
-        <Outlet />
+        <div key={location.pathname} className="animate-fadeIn h-full">
+          <Outlet />
+        </div>
       </main>
       <AiStatusBar />
     </div>
