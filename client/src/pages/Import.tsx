@@ -98,7 +98,7 @@ export function Import() {
       {/* Step 2: Preview */}
       {step === "preview" && preview && (
         <div className="space-y-4">
-          <div className="bg-white border border-stone-200 rounded-lg p-6">
+          <div className="bg-white border border-stone-100 rounded-lg p-6">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-medium text-stone-900">{file?.name}</h3>
               <span className="text-sm text-stone-500">
@@ -146,7 +146,7 @@ export function Import() {
 
       {/* Step 3: Done */}
       {step === "done" && result && (
-        <div className="bg-white border border-stone-200 rounded-lg p-8 text-center">
+        <div className="bg-white border border-stone-100 rounded-lg p-8 text-center">
           <div className="w-14 h-14 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <Check className="text-green-600" size={28} />
           </div>

@@ -146,15 +146,15 @@ export function Review() {
           )}
         </div>
         <div className="flex items-center gap-4">
-          <div className="flex border border-stone-200 rounded-lg overflow-hidden text-sm">
+          <div className="flex border border-stone-100 rounded-lg overflow-hidden text-sm">
             <button
-              className={cn("px-3 py-1.5", viewMode === "review" ? "bg-stone-700 text-white" : "bg-white text-stone-600")}
+              className={cn("px-3 py-1.5", viewMode === "review" ? "bg-stone-700 text-white" : "bg-white text-stone-400")}
               onClick={() => setViewMode("review")}
             >
               Needs review
             </button>
             <button
-              className={cn("px-3 py-1.5", viewMode === "all" ? "bg-stone-700 text-white" : "bg-white text-stone-600")}
+              className={cn("px-3 py-1.5", viewMode === "all" ? "bg-stone-700 text-white" : "bg-white text-stone-400")}
               onClick={() => setViewMode("all")}
             >
               All transactions
@@ -198,7 +198,7 @@ export function Review() {
 
       {/* Empty state */}
       {transactions && transactions.length === 0 && (
-        <div className="bg-white border border-stone-200 rounded-lg p-12 text-center">
+        <div className="bg-white border border-stone-100 rounded-lg p-12 text-center">
           <CheckSquare className="mx-auto mb-3 text-green-500" size={32} />
           <h3 className="text-sm font-medium text-stone-900">All caught up!</h3>
           <p className="text-sm text-stone-500 mt-1">No transactions need review this month.</p>
@@ -207,9 +207,9 @@ export function Review() {
 
       {/* Table */}
       {transactions && transactions.length > 0 && (
-        <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
+        <div className="bg-white border border-stone-100 rounded-lg overflow-hidden">
           <table className="w-full text-sm">
-            <thead className="bg-stone-50 border-b border-stone-200">
+            <thead className="bg-stone-50 border-b border-stone-100">
               <tr>
                 <th className="w-8 p-3">
                   <input
@@ -218,13 +218,13 @@ export function Review() {
                     checked={selected.size === transactions.length && transactions.length > 0}
                   />
                 </th>
-                <th className="text-left p-3 font-medium text-stone-500">Date</th>
-                <th className="text-left p-3 font-medium text-stone-500">Description</th>
-                <th className="text-right p-3 font-medium text-stone-500">Amount</th>
-                <th className="text-left p-3 font-medium text-stone-500 w-44">Category</th>
-                <th className="text-left p-3 font-medium text-stone-500 w-36">Merchant</th>
-                <th className="text-center p-3 font-medium text-stone-500 w-16">Conf</th>
-                <th className="text-left p-3 font-medium text-stone-500 w-20">Actions</th>
+                <th className="text-left p-3 font-medium text-stone-400">Date</th>
+                <th className="text-left p-3 font-medium text-stone-400">Description</th>
+                <th className="text-right p-3 font-medium text-stone-400">Amount</th>
+                <th className="text-left p-3 font-medium text-stone-400 w-44">Category</th>
+                <th className="text-left p-3 font-medium text-stone-400 w-36">Merchant</th>
+                <th className="text-center p-3 font-medium text-stone-400 w-16">Conf</th>
+                <th className="text-left p-3 font-medium text-stone-400 w-20">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -232,7 +232,7 @@ export function Review() {
                 <tr
                   key={tx.id}
                   className={cn(
-                    "border-b border-stone-100",
+                    "border-b border-stone-50",
                     !tx.categoryId && "bg-amber-50"
                   )}
                 >

@@ -226,13 +226,13 @@ export function Dashboard() {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <MonthSelector month={month} range={range} onChange={setMonth} onRangeChange={setRange} />
-        <div className="flex border border-stone-200 rounded-lg overflow-hidden text-sm">
+        <div className="flex border border-stone-100 rounded-lg overflow-hidden text-sm">
           <button
             className={cn(
               "px-4 py-2",
               mode === "overview"
                 ? "bg-stone-700 text-white"
-                : "bg-white text-stone-600"
+                : "bg-white text-stone-400"
             )}
             onClick={() => setMode("overview")}
           >
@@ -243,7 +243,7 @@ export function Dashboard() {
               "px-4 py-2",
               mode === "detail"
                 ? "bg-stone-700 text-white"
-                : "bg-white text-stone-600"
+                : "bg-white text-stone-400"
             )}
             onClick={() => setMode("detail")}
           >
@@ -336,8 +336,8 @@ function OverviewMode({
   return (
     <div className="relative flex flex-col h-[calc(100vh-5rem)] items-center justify-center">
       {/* Hero section */}
-      <div className="text-center mb-10">
-        <p className="text-lg text-stone-400 mb-4">
+      <div className="text-center mb-12">
+        <p className="text-lg text-stone-300 mb-4">
           Available in {formatMonth(month)}
         </p>
         <button
@@ -349,24 +349,24 @@ function OverviewMode({
         >
           {formatCurrency(animatedValue)}
         </button>
-        <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-500">
-          <span>Income: <span className="font-medium text-stone-700">{formatCurrency(totalIncome)}</span></span>
-          <span>Expenses: <span className="font-medium text-stone-700">{formatCurrency(totalExpenses)}</span></span>
-          <span><span className="font-medium text-stone-700">{savingsRate}%</span> saved</span>
+        <div className="flex items-center justify-center gap-8 mt-6 text-base text-stone-400">
+          <span>Income: <span className="font-medium text-stone-600">{formatCurrency(totalIncome)}</span></span>
+          <span>Expenses: <span className="font-medium text-stone-600">{formatCurrency(totalExpenses)}</span></span>
+          <span><span className="font-medium text-stone-600">{savingsRate}%</span> saved</span>
         </div>
       </div>
 
       {/* Category grid */}
       <div className="mb-8">
-        <div className="grid grid-cols-4 gap-3 max-w-3xl mx-auto">
+        <div className="grid grid-cols-4 gap-4 max-w-3xl mx-auto">
           {chartData.slice(0, 8).map((cat) => (
             <button
               key={cat.id}
               onClick={() => onCategoryClick(cat.id)}
-              className="bg-white border border-stone-100 rounded-xl p-4 text-center hover:shadow-card hover:border-stone-200 transition-all"
+              className="bg-white border border-stone-50 rounded-xl p-4 text-center hover:shadow-card hover:border-stone-200 transition-all"
             >
-              <p className="text-sm text-stone-500 mb-1">{cat.name}</p>
-              <p className="text-lg font-medium text-stone-900">{formatCurrency(cat.amount)}</p>
+              <p className="text-sm text-stone-400 mb-1">{cat.name}</p>
+              <p className="text-lg font-medium text-stone-700">{formatCurrency(cat.amount)}</p>
             </button>
           ))}
         </div>
@@ -440,11 +440,11 @@ function DetailMode({
       {/* Section 3: Category Breakdown */}
       <FadeInSection>
         <h3 className="text-base font-medium text-stone-700 mb-4">Spending by category</h3>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-4">
           {chartData.map(cat => (
-            <button key={cat.id} onClick={() => onCategoryClick(cat.id)} className="bg-white border border-stone-100 rounded-xl p-4 text-center hover:shadow-card transition-all">
-              <p className="text-sm text-stone-500 mb-1">{cat.name}</p>
-              <p className="text-lg font-medium text-stone-900">{formatCurrency(cat.amount)}</p>
+            <button key={cat.id} onClick={() => onCategoryClick(cat.id)} className="bg-white border border-stone-50 rounded-xl p-4 text-center hover:shadow-card transition-all">
+              <p className="text-sm text-stone-400 mb-1">{cat.name}</p>
+              <p className="text-lg font-medium text-stone-700">{formatCurrency(cat.amount)}</p>
             </button>
           ))}
         </div>

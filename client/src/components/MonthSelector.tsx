@@ -90,7 +90,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
           onClick={() => { onChange(getPreviousMonth(month)); onRangeChange?.(null); }}
           className="p-1.5 hover:bg-stone-100 rounded-md transition-colors"
         >
-          <ChevronLeft size={20} className="text-stone-600" />
+          <ChevronLeft size={20} className="text-stone-400" />
         </button>
 
         <button
@@ -111,13 +111,13 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
           className="p-1.5 hover:bg-stone-100 rounded-md transition-colors disabled:opacity-30"
           disabled={month >= getCurrentMonth()}
         >
-          <ChevronRight size={20} className="text-stone-600" />
+          <ChevronRight size={20} className="text-stone-400" />
         </button>
       </div>
 
       {/* Dropdown panel */}
       {open && (
-        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border border-stone-200 p-4 z-50 w-72">
+        <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border border-stone-100 p-4 z-50 w-72">
           {/* Year selector */}
           <div className="flex items-center justify-between mb-3">
             <button onClick={() => setViewYear(viewYear - 1)} className="p-1 hover:bg-stone-100 rounded">

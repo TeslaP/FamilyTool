@@ -109,7 +109,7 @@ export function Forecast() {
     return (
       <div className="p-6">
         <h2 className="text-xl font-semibold text-stone-900 mb-4">Forecast</h2>
-        <div className="bg-white border border-stone-200 rounded-lg p-12 text-center">
+        <div className="bg-white border border-stone-100 rounded-lg p-12 text-center">
           <h3 className="text-sm font-medium text-stone-900">Not enough data</h3>
           <p className="text-sm text-stone-500 mt-1">Import at least one month of transactions to see forecasts.</p>
         </div>
@@ -150,8 +150,8 @@ export function Forecast() {
       </div>
 
       {/* Hero remaining metric */}
-      <div className="bg-white border border-stone-200 rounded-lg p-6 text-center mb-6">
-        <p className="text-sm text-stone-500 font-normal">
+      <div className="bg-white border border-stone-100 rounded-lg p-6 text-center mb-6">
+        <p className="text-sm text-stone-400 font-normal">
           Remaining after fixed costs{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
         </p>
         <p className={cn("text-4xl font-light mt-1", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
@@ -165,9 +165,9 @@ export function Forecast() {
       {/* Three columns */}
       <div className="grid grid-cols-3 gap-4">
         {/* Fixed costs */}
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
+        <div className="bg-white border border-stone-100 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-medium text-stone-700">Fixed costs</h3>
+            <h3 className="text-base font-medium text-stone-600">Fixed costs</h3>
             <span className="text-sm font-semibold text-stone-900">{formatCurrency(totalFixed)}</span>
           </div>
           <div className="space-y-2">
@@ -187,9 +187,9 @@ export function Forecast() {
         </div>
 
         {/* Variable costs */}
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
+        <div className="bg-white border border-stone-100 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-medium text-stone-700">Variable costs (avg)</h3>
+            <h3 className="text-base font-medium text-stone-600">Variable costs (avg)</h3>
             <span className="text-sm font-semibold text-stone-900">{formatCurrency(totalVariable)}</span>
           </div>
           <div className="space-y-2">
@@ -209,9 +209,9 @@ export function Forecast() {
         </div>
 
         {/* Savings & summary */}
-        <div className="bg-white border border-stone-200 rounded-lg p-4">
+        <div className="bg-white border border-stone-100 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-medium text-stone-700">Summary</h3>
+            <h3 className="text-base font-medium text-stone-600">Summary</h3>
           </div>
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
@@ -226,8 +226,8 @@ export function Forecast() {
               <span className="text-stone-600">Variable costs</span>
               <span className="font-medium text-stone-900">−{formatCurrency(totalVariable)}</span>
             </div>
-            <div className="border-t border-stone-200 pt-2 flex justify-between">
-              <span className="font-medium text-stone-700">Projected surplus</span>
+            <div className="border-t border-stone-100 pt-2 flex justify-between">
+              <span className="font-medium text-stone-600">Projected surplus</span>
               <span className={cn("font-bold", remaining >= 0 ? "text-green-600" : "text-red-600")}>
                 {formatCurrency(remaining)}
               </span>
