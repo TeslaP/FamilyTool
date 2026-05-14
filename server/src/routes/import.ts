@@ -2,11 +2,11 @@ import { Router } from "express";
 import type Database from "better-sqlite3";
 import type { Multer } from "multer";
 import { dirname, join } from "path";
+import { spawn } from "child_process";
 import { parseTabFile, parseXlsFile, type ParsedTransaction } from "../services/parser.js";
 import { generateFingerprint } from "../services/fingerprint.js";
 import { matchRules } from "../services/rules.js";
 import { createBackup, cleanOldBackups } from "../services/backup.js";
-import { categoriseTransactions } from "../ai/categoriser.js";
 import { recalculateAffectedMonths } from "../services/recalculation.js";
 
 interface PreviewTransaction extends ParsedTransaction {
@@ -173,58 +173,24 @@ export function createImportRouter(db: Database.Database, upload: Multer, dbPath
       aiStatus: "processing",
     });
 
-    // AI categorisation runs in background (fire-and-forget)
-    const uncategorised = db.prepare(
-      "SELECT id, rawDescription FROM transactions WHERE sourceFileId = ? AND categorisationMethod IS NULL"
-    ).all(fileId) as { id: number; rawDescription: string }[];
+    // AI categorisation runs as a separate child process
+    const uncategorisedCount = db.prepare(
+      "SELECT COUNT(*) as count FROM transactions WHERE sourceFileId = ? AND categorisationMethod IS NULL"
+    ).get(fileId) as { count: number };
 
-    if (uncategorised.length > 0) {
-      console.log(`[Import] File ${fileId}: ${imported} imported, starting background AI for ${uncategorised.length} transactions...`);
+    if (uncategorisedCount.count > 0) {
+      console.log(`[Import] File ${fileId}: ${imported} imported, spawning AI categorisation for ${uncategorisedCount.count} transactions...`);
 
-      const aiInput = uncategorised.map((t, i) => ({ index: i, rawDescription: t.rawDescription }));
-
-      categoriseTransactions(db, aiInput).then((aiResult) => {
-        const updateStmt = db.prepare(
-          "UPDATE transactions SET merchantName = ?, categoryId = ?, direction = ?, isRecurring = ?, confidence = ?, categorisationMethod = 'ai' WHERE id = ?"
-        );
-
-        let aiCategorised = 0;
-        for (const [index, result] of aiResult.results) {
-          const txId = uncategorised[index].id;
-          updateStmt.run(result.merchantName, result.categoryId, result.direction, result.isRecurring ? 1 : 0, result.confidence, txId);
-          aiCategorised++;
-        }
-
-        for (const [index, cached] of aiResult.cached) {
-          const txId = uncategorised[index].id;
-          updateStmt.run(cached.merchantName, cached.categoryId, cached.direction, cached.isRecurring ? 1 : 0, cached.confidence, txId);
-          aiCategorised++;
-        }
-
-        const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
-        let aiFailed = 0;
-        for (const index of aiResult.failed) {
-          const txId = uncategorised[index].id;
-          failStmt.run(txId);
-          aiFailed++;
-        }
-
-        db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(aiCategorised + aiFailed, fileId);
-
-        const dates = db.prepare("SELECT DISTINCT transactionDate FROM transactions WHERE sourceFileId = ?").all(fileId) as { transactionDate: string }[];
-        recalculateAffectedMonths(db, dates.map((d) => d.transactionDate));
-
-        console.log(`[Import] AI complete for file ${fileId}: ${aiCategorised} categorised, ${aiFailed} failed`);
-      }).catch((err) => {
-        console.error(`[Import] AI background error for file ${fileId}:`, err?.message || err);
-        const failStmt = db.prepare("UPDATE transactions SET categorisationMethod = 'failed' WHERE id = ?");
-        for (const t of uncategorised) {
-          failStmt.run(t.id);
-        }
-        db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(uncategorised.length, fileId);
+      // Spawn categorise-pending.ts as a detached child process
+      const scriptPath = join(dirname(new URL(import.meta.url).pathname), "../../categorise-pending.ts");
+      const child = spawn("npx", ["tsx", scriptPath], {
+        cwd: join(dirname(new URL(import.meta.url).pathname), "../.."),
+        detached: true,
+        stdio: "ignore",
+        env: { ...process.env },
       });
-    } else {
-      db.prepare("UPDATE import_files SET aiRequestCount = ? WHERE id = ?").run(0, fileId);
+      child.unref();
+      console.log(`[Import] AI child process spawned (PID: ${child.pid})`);
     }
   } catch (err: any) {
     console.error("Import confirm error:", err.message);
