@@ -322,6 +322,7 @@ npx tsc --noEmit -p server/tsconfig.json
 - [Main design spec](docs/superpowers/specs/2026-05-13-family-finance-organiser-design.md)
 - [Design system (typography + colours)](docs/superpowers/specs/2026-05-14-design-system.md)
 - [Dashboard evolution (weekly pacing + trajectory)](docs/superpowers/specs/2026-05-14-dashboard-evolution-design.md)
+- [Future plans](docs/FUTURE.md)
 
 ---
 
