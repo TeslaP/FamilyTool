@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
+import { MonthProvider } from "./hooks/useMonthParam";
 import { Layout } from "./components/Layout";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
@@ -41,7 +42,9 @@ export function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <AppRoutes />
+        <MonthProvider>
+          <AppRoutes />
+        </MonthProvider>
       </AuthProvider>
     </BrowserRouter>
   );
