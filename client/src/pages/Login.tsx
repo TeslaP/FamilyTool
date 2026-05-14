@@ -2,17 +2,42 @@ import { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { HorizonLogo } from "../components/HorizonLogo";
 
-const backgrounds = [
-  "/backgrounds/01-mountain-fog.jpg",
-  "/backgrounds/02-autumn-lake.jpg",
-  "/backgrounds/03-misty-forest.jpg",
-  "/backgrounds/04-snow-peaks.jpg",
-  "/backgrounds/05-clouds-mountain.jpg",
-  "/backgrounds/06-morning-valley.jpg",
-  "/backgrounds/07-peaks-dawn.jpg",
-  "/backgrounds/09-winter-field.jpg",
-  "/backgrounds/10-calm-water.jpg",
-];
+const seasonalBackgrounds: Record<string, string[]> = {
+  winter: [
+    "/backgrounds/04-snow-peaks.jpg",
+    "/backgrounds/09-winter-field.jpg",
+    "/backgrounds/01-mountain-fog.jpg",
+  ],
+  spring: [
+    "/backgrounds/06-morning-valley.jpg",
+    "/backgrounds/03-misty-forest.jpg",
+    "/backgrounds/10-calm-water.jpg",
+  ],
+  summer: [
+    "/backgrounds/02-autumn-lake.jpg",
+    "/backgrounds/05-clouds-mountain.jpg",
+    "/backgrounds/07-peaks-dawn.jpg",
+  ],
+  autumn: [
+    "/backgrounds/02-autumn-lake.jpg",
+    "/backgrounds/01-mountain-fog.jpg",
+    "/backgrounds/03-misty-forest.jpg",
+  ],
+};
+
+function getSeason(): string {
+  const month = new Date().getMonth(); // 0-11
+  if (month >= 2 && month <= 4) return "spring";
+  if (month >= 5 && month <= 7) return "summer";
+  if (month >= 8 && month <= 10) return "autumn";
+  return "winter";
+}
+
+function getSeasonalBackground(): string {
+  const season = getSeason();
+  const images = seasonalBackgrounds[season];
+  return images[Math.floor(Math.random() * images.length)];
+}
 
 function getTimeGreeting(): string {
   const hour = new Date().getHours();
@@ -37,9 +62,7 @@ export function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [bgImage] = useState(
-    () => backgrounds[Math.floor(Math.random() * backgrounds.length)]
-  );
+  const [bgImage] = useState(() => getSeasonalBackground());
   const [welcomeMessage] = useState(
     () => welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)]
   );
