@@ -1,4 +1,4 @@
-import { NavLink, Outlet, useSearchParams } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
@@ -26,20 +26,11 @@ function NavTooltip({ label, children }: { label: string; children: React.ReactN
 
 export function Layout() {
   const { logout } = useAuth();
-  const [searchParams] = useSearchParams();
   const { data: reviewItems } = useApi(
     () => api.getTransactions({ month: getCurrentMonth(), needsReview: true }),
     []
   );
   const reviewCount = reviewItems?.length || 0;
-
-  // Build month param string to persist across navigation
-  const monthParams = new URLSearchParams();
-  if (searchParams.get("month")) monthParams.set("month", searchParams.get("month")!);
-  if (searchParams.get("from")) monthParams.set("from", searchParams.get("from")!);
-  if (searchParams.get("to")) monthParams.set("to", searchParams.get("to")!);
-  if (searchParams.get("rangeLabel")) monthParams.set("rangeLabel", searchParams.get("rangeLabel")!);
-  const paramString = monthParams.toString() ? `?${monthParams.toString()}` : "";
 
   return (
     <div className="h-screen flex bg-stone-50 overflow-hidden">
@@ -49,7 +40,7 @@ export function Layout() {
           {navItems.map(({ to, icon: Icon, label }) => (
             <NavTooltip key={to} label={label}>
               <NavLink
-                to={`${to}${paramString}`}
+                to={to}
                 end={to === "/"}
                 className={({ isActive }) =>
                   cn(
