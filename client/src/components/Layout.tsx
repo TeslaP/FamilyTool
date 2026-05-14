@@ -46,7 +46,7 @@ export function Layout() {
                 end={to === "/"}
                 className={({ isActive }) =>
                   cn(
-                    "relative w-9 h-9 flex items-center justify-center rounded-md transition-all duration-200",
+                    "relative w-9 h-9 flex items-center justify-center rounded-md",
                     isActive ? "bg-white text-stone-950" : "text-stone-400 hover:text-white hover:bg-stone-800/80"
                   )
                 }
@@ -64,7 +64,7 @@ export function Layout() {
         <NavTooltip label="Sign out">
           <button
             onClick={logout}
-            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80 transition-all duration-200"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80"
           >
             <LogOut size={18} />
           </button>

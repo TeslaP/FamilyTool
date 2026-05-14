@@ -88,18 +88,18 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
       <div className="flex items-center gap-3">
         <button
           onClick={() => { onChange(getPreviousMonth(month)); onRangeChange?.(null); }}
-          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors duration-200"
+          className="p-1.5 hover:bg-stone-100 rounded-md"
         >
           <ChevronLeft size={20} className="text-stone-400" />
         </button>
 
         <button
           onClick={() => { setViewYear(currentYear); setOpen(!open); }}
-          className="flex flex-col items-center gap-0.5 hover:bg-stone-100 px-3 py-1.5 rounded-md transition-colors duration-200 min-w-[160px]"
+          className="flex flex-col items-center gap-0.5 hover:bg-stone-100 px-3 py-1.5 rounded-md min-w-[160px]"
         >
           <span className="flex items-center gap-1.5 text-base font-medium text-stone-900">
             {displayLabel}
-            <ChevronDown size={14} className={cn("text-stone-400 transition-transform", open && "rotate-180")} />
+            <ChevronDown size={14} className={cn("text-stone-400", open && "rotate-180")} />
           </span>
           {displaySubtitle && (
             <span className="text-xs text-stone-400">{displaySubtitle}</span>
@@ -108,7 +108,7 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
 
         <button
           onClick={() => { onChange(getNextMonth(month)); onRangeChange?.(null); }}
-          className="p-1.5 hover:bg-stone-100 rounded-md transition-colors duration-200 disabled:opacity-30"
+          className="p-1.5 hover:bg-stone-100 rounded-md disabled:opacity-30"
           disabled={month >= getCurrentMonth()}
         >
           <ChevronRight size={20} className="text-stone-400" />
