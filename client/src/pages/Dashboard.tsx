@@ -147,6 +147,8 @@ export function Dashboard() {
     [month, range]
   );
   const { data: categories } = useApi(() => api.getCategories(), []);
+  const { data: sessions } = useApi(() => api.getSessions(month), [month]);
+  const lastSession = sessions && sessions.length > 0 ? sessions[0] : null;
 
   // Calculate metrics
   const totalIncome =
@@ -280,6 +282,7 @@ export function Dashboard() {
           onGenerateSummary={handleGenerateSummary}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
           onSwitchToDetail={() => setMode("detail")}
+          lastSession={lastSession}
         />
         </div>
       ) : (
@@ -318,6 +321,7 @@ function OverviewMode({
   onGenerateSummary,
   onCategoryClick,
   onSwitchToDetail,
+  lastSession,
 }: {
   netCashflow: number;
   totalIncome: number;
@@ -330,6 +334,7 @@ function OverviewMode({
   onGenerateSummary: () => void;
   onCategoryClick: (id: number) => void;
   onSwitchToDetail: () => void;
+  lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
 }) {
   const animatedValue = useCountUp(netCashflow, 1200);
 
@@ -373,15 +378,27 @@ function OverviewMode({
       </div>
 
       {/* Reflect link — anchored to bottom */}
-      <div className="absolute bottom-6 left-0 right-0 text-center">
+      <div className="absolute bottom-6 left-0 right-0 text-center px-6">
         {summary ? (
           <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
+        ) : lastSession ? (
+          <div className="max-w-lg mx-auto">
+            <p className="font-editorial text-sm text-stone-400 italic leading-relaxed line-clamp-2">
+              {lastSession.aiReflection.split("\n\n")[0]}
+            </p>
+            <Link
+              to={`/session?month=${month}`}
+              className="inline-block mt-2 text-xs text-stone-300 hover:text-stone-500 transition-colors"
+            >
+              Continue reflection &rarr;
+            </Link>
+          </div>
         ) : (
           <Link
             to={`/session?month=${month}`}
             className="font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
           >
-            Reflect on this month →
+            Reflect on this month &rarr;
           </Link>
         )}
       </div>

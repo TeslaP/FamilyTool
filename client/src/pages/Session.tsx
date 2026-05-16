@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { HorizonLogoAnimated } from "../components/HorizonLogoAnimated";
 import { HorizonLogo } from "../components/HorizonLogo";
 import { api } from "../api/client";
-import { getCurrentMonth } from "../lib/utils";
+import { getCurrentMonth, getPreviousMonth } from "../lib/utils";
 
 const PROCESSING_MESSAGES = [
   "Looking through this month",
@@ -35,8 +35,20 @@ export function Session() {
   const [reflection, setReflection] = useState("");
   const [closingNote, setClosingNote] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
+  const [previousNote, setPreviousNote] = useState<string | null>(null);
   const reflectionReady = useRef(false);
   const minTimeElapsed = useRef(false);
+
+  // Fetch previous month's closing note for recall
+  useEffect(() => {
+    const prevMonth = getPreviousMonth(month);
+    api.getSessions(prevMonth).then(sessions => {
+      if (sessions.length > 0) {
+        const last = sessions[0];
+        setPreviousNote(last.closingNote || last.intention || null);
+      }
+    }).catch(() => {});
+  }, [month]);
 
   // Processing: rotate messages every 5s
   useEffect(() => {
@@ -111,13 +123,18 @@ export function Session() {
           <p className="session-enter session-enter-delay-2 text-base text-stone-400 text-center mb-12">
             A moment to review this month
           </p>
+          {previousNote && (
+            <p className="session-enter session-enter-delay-2 text-sm text-stone-300 text-center mb-8 max-w-sm italic">
+              Last month you mentioned: &ldquo;{previousNote}&rdquo;
+            </p>
+          )}
           <div className="session-enter session-enter-delay-3 w-full max-w-md">
-            <input
-              type="text"
+            <textarea
               value={intention}
               onChange={(e) => setIntention(e.target.value)}
               placeholder="What's on your mind? (optional)"
-              className="w-full px-5 py-4 bg-white/60 border border-stone-100 rounded-xl text-base text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-1 focus:ring-stone-300"
+              rows={3}
+              className="w-full px-5 py-4 bg-white/40 border-none rounded-xl text-lg text-stone-700 placeholder:text-stone-300 focus:outline-none leading-relaxed resize-none"
             />
           </div>
           <button
@@ -167,14 +184,14 @@ export function Session() {
             <HorizonLogo size={36} className="mx-auto mb-8" />
           </div>
           <p className="session-enter session-enter-delay-1 text-base text-stone-400 text-center mb-8">
-            Anything to remember about this month?
+            What would you like to carry into next month?
           </p>
           <textarea
             value={closingNote}
             onChange={(e) => setClosingNote(e.target.value)}
             placeholder="Optional..."
-            rows={3}
-            className="session-enter session-enter-delay-2 w-full max-w-md px-5 py-4 bg-white/60 border border-stone-100 rounded-xl text-base text-stone-700 placeholder:text-stone-300 focus:outline-none focus:ring-1 focus:ring-stone-300 resize-none"
+            rows={4}
+            className="session-enter session-enter-delay-2 w-full max-w-md px-5 py-4 bg-white/40 border-none rounded-xl text-lg text-stone-700 placeholder:text-stone-300 focus:outline-none leading-relaxed resize-none"
           />
           <button
             onClick={handleSaveAndClose}
