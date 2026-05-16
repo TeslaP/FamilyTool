@@ -92,3 +92,12 @@ CREATE TABLE IF NOT EXISTS ai_cache (
   confidence REAL NOT NULL,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS session_reflections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  month TEXT NOT NULL,
+  intention TEXT,
+  aiReflection TEXT NOT NULL,
+  closingNote TEXT,
+  createdAt TEXT NOT NULL DEFAULT (datetime('now'))
+);

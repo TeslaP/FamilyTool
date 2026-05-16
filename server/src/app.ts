@@ -10,6 +10,7 @@ import { createImportRouter } from "./routes/import.js";
 import { createTransactionsRouter } from "./routes/transactions.js";
 import { createSummaryRouter } from "./routes/summary.js";
 import { createTrajectoryRouter } from "./routes/trajectory.js";
+import { createSessionRouter } from "./routes/session.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 export function createApp() {
@@ -34,6 +35,7 @@ export function createApp() {
   app.use("/api/transactions", authMiddleware(config.jwtSecret), createTransactionsRouter(db));
   app.use("/api/summary", authMiddleware(config.jwtSecret), createSummaryRouter(db));
   app.use("/api/trajectory", authMiddleware(config.jwtSecret), createTrajectoryRouter(db));
+  app.use("/api/session", authMiddleware(config.jwtSecret), createSessionRouter(db));
 
   return app;
 }

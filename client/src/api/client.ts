@@ -127,6 +127,25 @@ class ApiClient {
   async getTrajectory(year: number) {
     return this.request<any>(`/trajectory?year=${year}`);
   }
+
+  async sessionReflect(month: string, intention?: string) {
+    return this.request<{ reflection: string; context: any }>("/session/reflect", {
+      method: "POST",
+      body: JSON.stringify({ month, intention }),
+    });
+  }
+
+  async sessionSave(data: { month: string; intention?: string; aiReflection: string; closingNote?: string }) {
+    return this.request<{ id: number }>("/session/save", {
+      method: "POST",
+      body: JSON.stringify(data),
+    });
+  }
+
+  async getSessions(month?: string) {
+    const query = month ? `?month=${month}` : "";
+    return this.request<any[]>(`/session${query}`);
+  }
 }
 
 export const api = new ApiClient();
