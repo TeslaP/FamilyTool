@@ -1,6 +1,6 @@
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { LayoutDashboard, Upload, CheckSquare, TrendingUp, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, CheckSquare, TrendingUp, BookOpen, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
 import { AiStatusBar } from "./AiStatusBar";
 import { cn, getCurrentMonth } from "../lib/utils";
@@ -12,6 +12,7 @@ const navItems = [
   { to: "/import", icon: Upload, label: "Import" },
   { to: "/review", icon: CheckSquare, label: "Review" },
   { to: "/forecast", icon: TrendingUp, label: "Forecast" },
+  { to: "/reflections", icon: BookOpen, label: "Reflections" },
 ];
 
 function NavTooltip({ label, children }: { label: string; children: React.ReactNode }) {

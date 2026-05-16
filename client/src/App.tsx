@@ -9,6 +9,7 @@ import { Review } from "./pages/Review";
 import { Forecast } from "./pages/Forecast";
 import { DashboardDrilldown } from "./pages/DashboardDrilldown";
 import { Session } from "./pages/Session";
+import { SessionHistory } from "./pages/SessionHistory";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ function AppRoutes() {
         <Route path="/import" element={<Import />} />
         <Route path="/review" element={<Review />} />
         <Route path="/forecast" element={<Forecast />} />
+        <Route path="/reflections" element={<SessionHistory />} />
         <Route path="/drilldown" element={<DashboardDrilldown />} />
       </Route>
     </Routes>

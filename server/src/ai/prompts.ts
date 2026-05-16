@@ -1,5 +1,12 @@
 import type Database from "better-sqlite3";
 
+export interface TrendSignal {
+  category: string;
+  direction: "up" | "down" | "stable";
+  changePercent: number;
+  months: number;
+}
+
 export interface PromptContext {
   month: string;
   totalIncome: number;
@@ -9,6 +16,10 @@ export interface PromptContext {
   topCategories: { name: string; amount: number }[];
   intention?: string;
   previousNote?: string;
+  // Trend context
+  trends: TrendSignal[];
+  monthOverMonth: { incomeChange: number; expenseChange: number };
+  savingsTrajectory: "improving" | "declining" | "stable";
 }
 
 export function buildReflectionPrompt(ctx: PromptContext): { system: string; user: string } {
@@ -43,6 +54,15 @@ ${ctx.topCategories.map(c => `- ${c.name}: €${c.amount.toFixed(2)}`).join("\n"
   if (ctx.previousNote) {
     user += `\n\nNote from previous month's reflection: "${ctx.previousNote}"`;
   }
+
+  if (ctx.trends.length > 0) {
+    user += `\n\nNotable trends vs previous month:\n${ctx.trends.map(t =>
+      `- ${t.category}: ${t.direction} (${t.changePercent > 0 ? "+" : ""}${t.changePercent}%)`
+    ).join("\n")}`;
+  }
+
+  user += `\n\nMonth-over-month: income ${ctx.monthOverMonth.incomeChange > 0 ? "+" : ""}${ctx.monthOverMonth.incomeChange}%, expenses ${ctx.monthOverMonth.expenseChange > 0 ? "+" : ""}${ctx.monthOverMonth.expenseChange}%`;
+  user += `\nSavings trajectory: ${ctx.savingsTrajectory}`;
 
   user += `\n\nWrite the 4-paragraph reflection now.`;
 
@@ -94,6 +114,53 @@ export function gatherPromptContext(db: Database.Database, month: string, intent
     "SELECT closingNote FROM session_reflections WHERE month < ? ORDER BY month DESC LIMIT 1"
   ).get(month) as { closingNote: string } | undefined;
 
+  // Previous month logic
+  function prevMonth(m: string): string {
+    const [y, mo] = m.split("-").map(Number);
+    if (mo === 1) return `${y - 1}-12`;
+    return `${y}-${String(mo - 1).padStart(2, "0")}`;
+  }
+
+  // Get previous month totals
+  const prev = prevMonth(month);
+  const prevTransactions = db.prepare(
+    "SELECT amount, direction, categoryId FROM transactions WHERE substr(transactionDate, 1, 7) = ?"
+  ).all(prev) as { amount: number; direction: string; categoryId: number | null }[];
+
+  const prevIncome = prevTransactions.filter(t => t.direction === "income").reduce((s, t) => s + t.amount, 0);
+  const prevExpenses = prevTransactions.filter(t => t.direction === "expense").reduce((s, t) => s + t.amount, 0);
+
+  const incomeChange = prevIncome > 0 ? Math.round(((totalIncome - prevIncome) / prevIncome) * 100) : 0;
+  const expenseChange = prevExpenses > 0 ? Math.round(((totalExpenses - prevExpenses) / prevExpenses) * 100) : 0;
+
+  // Category trends (compare this month to prev month per category)
+  const prevCatTotals = new Map<number, number>();
+  prevTransactions.filter(t => t.direction === "expense" && t.categoryId).forEach(t => {
+    prevCatTotals.set(t.categoryId!, (prevCatTotals.get(t.categoryId!) || 0) + t.amount);
+  });
+
+  const trends: TrendSignal[] = [];
+  for (const [id, amount] of catTotals) {
+    const prevAmount = prevCatTotals.get(id) || 0;
+    const name = catMap.get(id) || "Other";
+    if (prevAmount === 0 && amount > 100) {
+      trends.push({ category: name, direction: "up", changePercent: 100, months: 1 });
+    } else if (prevAmount > 0) {
+      const change = Math.round(((amount - prevAmount) / prevAmount) * 100);
+      if (change > 20) trends.push({ category: name, direction: "up", changePercent: change, months: 1 });
+      else if (change < -20) trends.push({ category: name, direction: "down", changePercent: change, months: 1 });
+      else trends.push({ category: name, direction: "stable", changePercent: change, months: 1 });
+    }
+  }
+  // Only keep notable trends (not stable ones)
+  const notableTrends = trends.filter(t => t.direction !== "stable").slice(0, 5);
+
+  // Savings trajectory
+  const prevSavingsRate = prevIncome > 0 ? Math.round(((prevIncome - prevExpenses) / prevIncome) * 100) : 0;
+  const savingsTrajectory: "improving" | "declining" | "stable" =
+    savingsRate > prevSavingsRate + 5 ? "improving" :
+    savingsRate < prevSavingsRate - 5 ? "declining" : "stable";
+
   return {
     month,
     totalIncome,
@@ -103,5 +170,8 @@ export function gatherPromptContext(db: Database.Database, month: string, intent
     topCategories,
     intention,
     previousNote: prevSession?.closingNote || undefined,
+    trends: notableTrends,
+    monthOverMonth: { incomeChange, expenseChange },
+    savingsTrajectory,
   };
 }
