@@ -377,13 +377,12 @@ function OverviewMode({
         {summary ? (
           <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
         ) : (
-          <button
-            onClick={onGenerateSummary}
-            disabled={summaryLoading}
-            className="font-editorial text-base text-stone-400 italic hover:text-stone-600 transition-colors"
+          <Link
+            to={`/session?month=${month}`}
+            className="font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
           >
-            {summaryLoading ? "Reflecting..." : "Reflect on this month →"}
-          </button>
+            Reflect on this month →
+          </Link>
         )}
       </div>
     </div>

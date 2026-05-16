@@ -8,6 +8,7 @@ import { Import } from "./pages/Import";
 import { Review } from "./pages/Review";
 import { Forecast } from "./pages/Forecast";
 import { DashboardDrilldown } from "./pages/DashboardDrilldown";
+import { Session } from "./pages/Session";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -21,6 +22,7 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/login" element={isAuthenticated ? <Navigate to="/" replace /> : <Login />} />
+      <Route path="/session" element={<ProtectedRoute><Session /></ProtectedRoute>} />
       <Route
         element={
           <ProtectedRoute>
