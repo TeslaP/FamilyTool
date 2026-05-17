@@ -121,20 +121,6 @@ Longitudinal view: savings progress, investment pacing, year-over-year spending.
 
 ---
 
-## Screenshots
-
-_Add screenshots once visual system stabilises._
-
-Suggested captures:
-- Login (seasonal background)
-- Dashboard Overview (hero + categories)
-- Session Reflection (AI narrative)
-- Detail mode (scrollable report)
-- Weekly Pacing
-- Year Trajectory
-
----
-
 ## Quick Start
 
 ### Prerequisites
