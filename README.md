@@ -279,4 +279,4 @@ Deferred:
 
 ## License
 
-Private project.
+AGPL-3.0. See [LICENSE](LICENSE).
