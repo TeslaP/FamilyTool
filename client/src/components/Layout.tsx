@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { LayoutDashboard, Upload, CheckSquare, TrendingUp, BookOpen, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
 import { AiStatusBar } from "./AiStatusBar";
-import { cn, getCurrentMonth } from "../lib/utils";
+import { cn, getCurrentMonth, getSeason } from "../lib/utils";
 import { useApi } from "../hooks/useApi";
 import { api } from "../api/client";
 
@@ -36,7 +36,7 @@ export function Layout() {
   const reviewCount = reviewItems?.length || 0;
 
   return (
-    <div className="h-screen flex bg-stone-50 overflow-hidden">
+    <div className={cn("h-screen flex overflow-hidden", `season-${getSeason()}`)}>
       <aside className="w-[60px] h-screen bg-stone-950 flex flex-col items-center py-4 gap-2 flex-shrink-0">
         <HorizonLogo size={36} className="mb-3" />
         <nav className="flex-1 flex flex-col items-center gap-1.5">

@@ -31,3 +31,11 @@ export function getNextMonth(month: string): string {
   if (m === 12) return `${year + 1}-01`;
   return `${year}-${String(m + 1).padStart(2, "0")}`;
 }
+
+export function getSeason(): "winter" | "spring" | "summer" | "autumn" {
+  const month = new Date().getMonth();
+  if (month >= 2 && month <= 4) return "spring";
+  if (month >= 5 && month <= 7) return "summer";
+  if (month >= 8 && month <= 10) return "autumn";
+  return "winter";
+}

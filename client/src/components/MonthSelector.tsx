@@ -34,6 +34,11 @@ function getPresets(viewYear: number) {
       from: `${viewYear}-01`,
       to: viewYear < currentYearNum ? `${viewYear}-12` : current,
     },
+    {
+      label: "Calendar year",
+      from: `${viewYear}-01`,
+      to: `${viewYear}-12`,
+    },
   ];
 }
 
@@ -87,7 +92,14 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
     <div className="relative" ref={ref}>
       <div className="flex items-center gap-3">
         <button
-          onClick={() => { onChange(getPreviousMonth(month)); onRangeChange?.(null); }}
+          onClick={() => {
+            if (range) {
+              onChange(getPreviousMonth(range.to));
+            } else {
+              onChange(getPreviousMonth(month));
+            }
+            onRangeChange?.(null);
+          }}
           className="p-1.5 hover:bg-stone-100 rounded-md"
         >
           <ChevronLeft size={20} className="text-stone-400" />
@@ -107,9 +119,16 @@ export function MonthSelector({ month, range, onChange, onRangeChange }: Props) 
         </button>
 
         <button
-          onClick={() => { onChange(getNextMonth(month)); onRangeChange?.(null); }}
+          onClick={() => {
+            if (range) {
+              onChange(getNextMonth(range.to));
+            } else {
+              onChange(getNextMonth(month));
+            }
+            onRangeChange?.(null);
+          }}
           className="p-1.5 hover:bg-stone-100 rounded-md disabled:opacity-30"
-          disabled={month >= getCurrentMonth()}
+          disabled={range ? range.to >= getCurrentMonth() : month >= getCurrentMonth()}
         >
           <ChevronRight size={20} className="text-stone-400" />
         </button>

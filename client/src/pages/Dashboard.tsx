@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   BarChart,
@@ -128,7 +128,15 @@ export function Dashboard() {
   const [mode, setMode] = useState<"overview" | "detail">("overview");
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => { setIsTransitioning(false); }, []);
+
+  const handleStartSession = () => {
+    setIsTransitioning(true);
+    setTimeout(() => navigate(`/session?month=${month}`), 400);
+  };
 
   const { data: transactions, loading, error } = useApi(
     async () => {
@@ -254,6 +262,10 @@ export function Dashboard() {
         </div>
       </div>
 
+      <div className={cn(
+        "transition-[filter,opacity] duration-[400ms] ease-[cubic-bezier(0.25,0.46,0.45,0.94)]",
+        isTransitioning && "blur-[8px] opacity-60"
+      )}>
       {isEmpty ? (
         <EmptyState
           icon={<LayoutDashboard size={32} />}
@@ -283,6 +295,7 @@ export function Dashboard() {
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
           onSwitchToDetail={() => setMode("detail")}
           lastSession={lastSession}
+          onReflect={handleStartSession}
         />
         </div>
       ) : (
@@ -303,6 +316,7 @@ export function Dashboard() {
         />
         </div>
       )}
+      </div>
     </div>
   );
 }
@@ -322,6 +336,7 @@ function OverviewMode({
   onCategoryClick,
   onSwitchToDetail,
   lastSession,
+  onReflect,
 }: {
   netCashflow: number;
   totalIncome: number;
@@ -335,6 +350,7 @@ function OverviewMode({
   onCategoryClick: (id: number) => void;
   onSwitchToDetail: () => void;
   lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
+  onReflect: () => void;
 }) {
   const animatedValue = useCountUp(netCashflow, 1200);
 
@@ -386,20 +402,20 @@ function OverviewMode({
             <p className="font-editorial text-sm text-stone-400 italic leading-relaxed line-clamp-2">
               {lastSession.aiReflection.split("\n\n")[0]}
             </p>
-            <Link
-              to={`/session?month=${month}`}
-              className="inline-block mt-2 text-xs text-stone-300 hover:text-stone-500 transition-colors"
+            <button
+              onClick={onReflect}
+              className="inline-block mt-2 font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
             >
               Continue reflection &rarr;
-            </Link>
+            </button>
           </div>
         ) : (
-          <Link
-            to={`/session?month=${month}`}
+          <button
+            onClick={onReflect}
             className="font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
           >
             Reflect on this month &rarr;
-          </Link>
+          </button>
         )}
       </div>
     </div>

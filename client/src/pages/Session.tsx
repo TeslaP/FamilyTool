@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { HorizonLogoAnimated } from "../components/HorizonLogoAnimated";
 import { HorizonLogo } from "../components/HorizonLogo";
 import { api } from "../api/client";
-import { getCurrentMonth, getPreviousMonth } from "../lib/utils";
+import { getCurrentMonth, getPreviousMonth, formatCurrency } from "../lib/utils";
 
 const PROCESSING_MESSAGES = [
   "Looking through this month",
@@ -23,7 +23,23 @@ function getTimeGreeting(): string {
   return "Late reflection";
 }
 
-type Step = "entry" | "processing" | "reflection" | "closing";
+type Step = "entry" | "processing" | "review" | "reflection" | "closing";
+
+function filterNotable(transactions: any[]): any[] {
+  const expenses = transactions.filter((t: any) => t.direction === "expense");
+  const topByAmount = [...expenses].sort((a: any, b: any) => b.amount - a.amount).slice(0, 4);
+  const uncategorised = expenses.filter((t: any) => !t.categoryId).slice(0, 2);
+
+  const seen = new Set<number>();
+  const result: any[] = [];
+  for (const t of [...topByAmount, ...uncategorised]) {
+    if (!seen.has(t.id) && result.length < 5) {
+      seen.add(t.id);
+      result.push(t);
+    }
+  }
+  return result;
+}
 
 export function Session() {
   const [searchParams] = useSearchParams();
@@ -36,6 +52,7 @@ export function Session() {
   const [closingNote, setClosingNote] = useState("");
   const [messageIndex, setMessageIndex] = useState(0);
   const [previousNote, setPreviousNote] = useState<string | null>(null);
+  const [notableTransactions, setNotableTransactions] = useState<any[]>([]);
   const reflectionReady = useRef(false);
   const minTimeElapsed = useRef(false);
 
@@ -74,10 +91,21 @@ export function Session() {
       return res.reflection;
     });
 
-    // Wait for BOTH minimum time and AI response
-    const [, reflectionText] = await Promise.all([minTimer, aiCall]);
+    // Fetch transactions
+    const txCall = api.getTransactions({ month });
+
+    // Wait for ALL: minimum time, AI response, and transactions
+    const [, reflectionText, allTransactions] = await Promise.all([minTimer, aiCall, txCall]);
     setReflection(reflectionText);
-    setStep("reflection");
+
+    const notable = filterNotable(allTransactions);
+    setNotableTransactions(notable);
+
+    if (notable.length >= 3) {
+      setStep("review");
+    } else {
+      setStep("reflection");
+    }
   };
 
   const handleSaveAndClose = async () => {
@@ -153,6 +181,41 @@ export function Session() {
           <p className="text-base text-stone-400 h-6 transition-opacity duration-1000">
             {PROCESSING_MESSAGES[messageIndex]}
           </p>
+        </div>
+      )}
+
+      {/* Step 2.5: Review notable transactions */}
+      {step === "review" && (
+        <div className="min-h-screen flex flex-col items-center justify-center px-6">
+          <div className="max-w-md w-full">
+            <p className="text-base text-stone-400 text-center mb-2 session-enter">
+              A few things that stood out
+            </p>
+            <p className="text-sm text-stone-300 text-center mb-10 session-enter session-enter-delay-1">
+              You can simply notice these and continue.
+            </p>
+            <div className="space-y-4 session-enter session-enter-delay-2">
+              {notableTransactions.map((t: any) => (
+                <div key={t.id} className="flex items-center justify-between py-3 border-b border-stone-100/50 last:border-none">
+                  <div>
+                    <p className="text-sm text-stone-700">{t.merchantName || t.rawDescription?.slice(0, 30) || "Transaction"}</p>
+                    {!t.categoryId && (
+                      <span className="text-xs text-stone-300">Uncategorised</span>
+                    )}
+                  </div>
+                  <span className="text-sm tabular-nums font-medium text-stone-800">
+                    {formatCurrency(t.amount)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <button
+            onClick={() => setStep("reflection")}
+            className="session-enter session-enter-delay-3 mt-12 px-8 py-3 text-base text-stone-400 hover:text-stone-700 transition-colors"
+          >
+            Continue &rarr;
+          </button>
         </div>
       )}
 

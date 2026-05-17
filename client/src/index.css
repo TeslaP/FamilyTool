@@ -45,3 +45,8 @@
 .animate-fadeIn {
   animation: fadeIn 300ms cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
+
+.season-winter { background-color: #f9fafb; }
+.season-spring { background-color: #fafaf9; }
+.season-summer { background-color: #fbfaf8; }
+.season-autumn { background-color: #fafaf7; }
