@@ -53,7 +53,7 @@ export function Forecast() {
     });
   }, [tx1, categoryMap, savedBudgets]);
 
-  // Calculate variable costs (3-month average per category, excluding recurring)
+  // Calculate variable costs — ALL expense categories with 3-month average
   const variableCosts = useMemo(() => {
     const nonRecurring = allTransactions.filter(t => !t.isRecurring && t.direction === "expense" && t.categoryId);
     const grouped = new Map<number, number[]>();
@@ -63,17 +63,26 @@ export function Forecast() {
       grouped.set(t.categoryId!, arr);
     });
 
-    // Count how many months we have data for
     const monthCount = [tx1, tx2, tx3].filter(t => t && t.length > 0).length || 1;
 
-    return Array.from(grouped.entries()).map(([id, amounts]) => {
-      const total = amounts.reduce((s, a) => s + a, 0);
-      const avg = Math.round(total / monthCount);
-      const cat = categoryMap.get(id);
-      const savedAmount = savedBudgets?.find(b => b.categoryId === id)?.budgetAmount;
-      return { id, key: `variable-${id}`, name: cat?.name || "Unknown", amount: Math.round(savedAmount ?? avg), type: "variable" as const };
-    }).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
-  }, [allTransactions, categoryMap, tx1, tx2, tx3, savedBudgets]);
+    // Get ALL leaf expense categories (not just ones with transactions)
+    const allExpenseCategories = categories
+      ?.filter(c => c.parentId && c.type === "expense" && c.isActive) || [];
+
+    // Exclude categories already in fixedCosts
+    const fixedCatIds = new Set(fixedCosts.map(f => f.id));
+
+    return allExpenseCategories
+      .filter(cat => !fixedCatIds.has(cat.id))
+      .map(cat => {
+        const amounts = grouped.get(cat.id) || [];
+        const total = amounts.reduce((s, a) => s + a, 0);
+        const avg = Math.round(total / monthCount);
+        const savedAmount = savedBudgets?.find(b => b.categoryId === cat.id)?.budgetAmount;
+        return { id: cat.id, key: `variable-${cat.id}`, name: cat.name, amount: Math.round(savedAmount ?? avg), type: "variable" as const };
+      })
+      .sort((a, b) => b.amount - a.amount);
+  }, [allTransactions, categories, categoryMap, tx1, tx2, tx3, savedBudgets, fixedCosts]);
 
   // Projected income (average of last 3 months)
   const projectedIncome = useMemo(() => {
