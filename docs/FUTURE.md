@@ -5,20 +5,22 @@
 ### Shipped
 - Transaction import pipeline (TAB/XLS, preview/confirm, duplicate detection)
 - AI categorisation (OpenAI, Dutch banking context, child process, caching, rules)
-- Dashboard: Overview (hero + categories) + Detail (scrollable report with weekly pacing, trajectory, merchants)
-- Horizon Sessions: 4-step reflection flow with continuity (intentions, recall, closing notes)
+- **~400 pre-seeded categorisation rules** (90%+ auto-categorisation for known merchants)
+- Dashboard: Overview (hero + categories + temporal reflection) + Detail (scrollable report)
+- **Temporal reflection system** (scope-adaptive: month → quarter → half → year)
+- Horizon Sessions: 4-step reflection flow with continuity
 - Session History archive (text-led, months as chapters)
-- Contextual AI: trend signals, month-over-month awareness, previous session recall
+- Contextual AI: trend signals, category anomalies, recurring cost changes, MoM awareness
 - In-session notable transaction review (3+ threshold, read-only grounding)
 - Calendar: range presets, year navigation, "Calendar year" preset, chevron-from-end behavior
 - Forecast: fixed/variable breakdown, 1-month / 3-month / till-EOY periods
-- Visual design system: Inter + Newsreader, stone palette, seasonal tints, unified motion (200/600/1200ms)
+- Visual design system: Inter + Newsreader, stone palette, seasonal tints, unified motion
 - Session mode transition (400ms blur threshold)
 - Animated Horizon logo, page crossfades, scroll fade-in, hero count-up
-- Review: spreadsheet table, bulk actions, delete, confirm, create rules, badge
 
 ### Architecture
 - Prompt registry (categorise, reflect, analyse — separate purposes)
+- **Temporal reflections** (scope-adaptive memory artifacts, input hash, never auto-refresh)
 - AI import as detached child process
 - Session as orchestration layer (same data, different container)
 - Month state via React context
@@ -26,35 +28,30 @@
 
 ---
 
-## Phase 1 — Deepen the Moat (Narrative Intelligence)
+## Phase 1 — Deepen the Moat (Narrative Intelligence) — MOSTLY SHIPPED
 
-The differentiated idea is **reflective continuity**, not operational finance tooling. Double down here first.
+### ✅ Temporal Reflection System (shipped)
+- Scope-adaptive reflections: 1 sentence (month) → 5 sentences (year)
+- Stored as memory artifacts (never auto-refresh, user-initiated)
+- Input hash for change detection
+- Integrated into Dashboard Overview (subtle) + Detail (prominent)
+- Generated on session completion + on-demand
 
-### Monthly Phrases
-- Each month gets a short AI-generated sentence capturing its character
-- Generated after a session (or on-demand from trajectory view)
-- Examples: "A month of recovery after a busy winter." / "Spending stabilised as routines returned."
-- Stored permanently, shown when scrolling through months
-- Visible on trajectory page as annotations alongside spending data
-- Transforms months into remembered periods
+### ✅ Seed Rule Bootstrapping (shipped)
+- 392 rules extracted from historical spreadsheet data
+- 90%+ auto-categorisation for known merchants
+- Script: `server/seed-rules.ts`
 
-### Session History on Trajectory
-- Trajectory page currently shows savings + spending charts
-- Add: reflection snippets alongside the timeline
-- Each month shows its phrase, intention, and closing note inline with the charts
-- Financial memory becomes *visible* — not just numbers, but narrative
+### ✅ AI Prompt Depth — Category Anomalies + Recurring Changes (shipped)
+- Categories >25% different from 3-month average detected and fed to prompt
+- Recurring cost changes (same merchant, different amount) detected
+- AI references signals only when genuinely notable
 
-### Year-End Reflection
-- Auto-generated annual retrospective from all sessions + trajectory data
-- Not an annual report — an annual *reflection*
-- Surfaces: seasonal patterns, intention progress, spending themes, memorable months
-- Calm, observational, editorial tone (Newsreader typography)
-- The signature feature of the product
-
-### Intention Carry-Over
-- Unmet or recurring intentions surface across months
-- "You mentioned 'reduce dining' in March and April — dining has decreased by 15% since."
-- AI connects current reality to past stated goals without being prescriptive
+### Remaining (next to build)
+- **Monthly phrases on month navigation** — show temporal reflection in MonthSelector dropdown when hovering/selecting months
+- **Session history integrated visually into Detail mode** — condensed session notes alongside financial sections
+- **Intention carry-over** — surface unmet recurring intentions ("You mentioned X in March and April...")
+- **AI prompt tuning** (ongoing practice, not a single build)
 
 ---
 

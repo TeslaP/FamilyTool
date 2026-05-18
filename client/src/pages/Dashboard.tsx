@@ -18,6 +18,7 @@ import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { PageLoader } from "../components/PageLoader";
 import { FadeInSection } from "../components/FadeInSection";
+import { TemporalReflectionBlock } from "../components/TemporalReflectionBlock";
 import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 
 // --- Weekly Pacing Section (fetches its own data) ---
@@ -375,6 +376,7 @@ function OverviewMode({
           <span>Expenses: <span className="font-medium text-stone-600">{formatCurrency(totalExpenses)}</span></span>
           <span><span className="font-medium text-stone-600">{savingsRate}%</span> saved</span>
         </div>
+        <TemporalReflectionBlock from={month} to={month} variant="subtle" />
       </div>
 
       {/* Category grid */}
@@ -464,6 +466,11 @@ function DetailMode({
           <MetricCard label="Net" value={formatCurrency(netCashflow)} />
           <MetricCard label="Saved" value={`${savingsRate}%`} />
         </div>
+      </FadeInSection>
+
+      {/* Temporal Reflection */}
+      <FadeInSection>
+        <TemporalReflectionBlock from={range?.from || month} to={range?.to || month} variant="prominent" />
       </FadeInSection>
 
       {/* Section 2: Weekly Pacing (only for single month) */}

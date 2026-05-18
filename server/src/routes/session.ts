@@ -3,6 +3,7 @@ import type Database from "better-sqlite3";
 import OpenAI from "openai";
 import { loadConfig } from "../config.js";
 import { buildReflectionPrompt, gatherPromptContext } from "../ai/prompts.js";
+import { generateTemporalReflection, gatherPeriodData, computeInputHash } from "../ai/temporal.js";
 
 export function createSessionRouter(db: Database.Database): Router {
   const router = Router();
@@ -57,6 +58,23 @@ export function createSessionRouter(db: Database.Database): Router {
     const result = db.prepare(
       "INSERT INTO session_reflections (month, intention, aiReflection, closingNote) VALUES (?, ?, ?, ?)"
     ).run(month, intention || null, aiReflection, closingNote || null);
+
+    // Also generate/update temporal reflection for this month
+    if (loadConfig().aiEnabled) {
+      generateTemporalReflection(db, month, month).then((reflection) => {
+        const data = gatherPeriodData(db, month, month);
+        const inputHash = computeInputHash(data);
+
+        db.prepare(`
+          INSERT INTO temporal_reflections (periodStart, periodEnd, reflection, inputHash, generatedAt)
+          VALUES (?, ?, ?, ?, datetime('now'))
+          ON CONFLICT(periodStart, periodEnd)
+          DO UPDATE SET reflection = ?, inputHash = ?, updatedAt = datetime('now')
+        `).run(month, month, reflection, inputHash, reflection, inputHash);
+      }).catch(() => {
+        // Non-critical — don't fail the session save
+      });
+    }
 
     res.json({ id: Number(result.lastInsertRowid) });
   });

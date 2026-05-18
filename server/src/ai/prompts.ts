@@ -20,6 +20,8 @@ export interface PromptContext {
   trends: TrendSignal[];
   monthOverMonth: { incomeChange: number; expenseChange: number };
   savingsTrajectory: "improving" | "declining" | "stable";
+  categoryAnomalies?: { category: string; thisMonth: number; average: number; changePercent: number }[];
+  recurringChanges?: { merchant: string; was: number; now: number; change: string }[];
 }
 
 export function buildReflectionPrompt(ctx: PromptContext): { system: string; user: string } {
@@ -35,7 +37,8 @@ RULES:
   3. Context (connect to the user's intention if provided, or note patterns)
   4. Gentle closing (one sentence framing the month's character)
 - Total length: 4-6 sentences. Be concise.
-- Write in third-person observational style, not "you did X" — more like "spending increased" or "the month felt..."`;
+- Write in third-person observational style, not "you did X" — more like "spending increased" or "the month felt..."
+- Reference category anomalies or recurring changes ONLY if they are genuinely notable. Do not mention every signal.`;
 
   let user = `Monthly financial data for ${ctx.month}:
 
@@ -64,6 +67,18 @@ ${ctx.topCategories.map(c => `- ${c.name}: €${c.amount.toFixed(2)}`).join("\n"
   user += `\n\nMonth-over-month: income ${ctx.monthOverMonth.incomeChange > 0 ? "+" : ""}${ctx.monthOverMonth.incomeChange}%, expenses ${ctx.monthOverMonth.expenseChange > 0 ? "+" : ""}${ctx.monthOverMonth.expenseChange}%`;
   user += `\nSavings trajectory: ${ctx.savingsTrajectory}`;
 
+  if (ctx.categoryAnomalies && ctx.categoryAnomalies.length > 0) {
+    user += `\n\nCategory anomalies (vs 3-month average):\n${ctx.categoryAnomalies.map(a =>
+      `- ${a.category}: €${a.thisMonth} this month vs €${a.average} average (${a.changePercent > 0 ? "+" : ""}${a.changePercent}%)`
+    ).join("\n")}`;
+  }
+
+  if (ctx.recurringChanges && ctx.recurringChanges.length > 0) {
+    user += `\n\nRecurring cost changes:\n${ctx.recurringChanges.map(r =>
+      `- ${r.merchant}: was €${r.was}, now €${r.now} (${r.change})`
+    ).join("\n")}`;
+  }
+
   user += `\n\nWrite the 4-paragraph reflection now.`;
 
   return { system, user };
@@ -83,6 +98,100 @@ ${ctx.topCategories.map(c => `- ${c.name}: €${c.amount.toFixed(2)}`).join("\n"
 Provide a brief factual analysis.`;
 
   return { system, user };
+}
+
+function computeCategoryAnomalies(db: Database.Database, month: string): { category: string; thisMonth: number; average: number; changePercent: number }[] {
+  // Get this month's category totals
+  const currentTotals = new Map<number, number>();
+  const currentTx = db.prepare(
+    "SELECT categoryId, amount FROM transactions WHERE substr(transactionDate,1,7) = ? AND direction = 'expense' AND categoryId IS NOT NULL"
+  ).all(month) as { categoryId: number; amount: number }[];
+  currentTx.forEach(t => currentTotals.set(t.categoryId, (currentTotals.get(t.categoryId) || 0) + t.amount));
+
+  // Get previous 3 months' averages
+  function prevMonth(m: string): string {
+    const [y, mo] = m.split("-").map(Number);
+    if (mo === 1) return `${y - 1}-12`;
+    return `${y}-${String(mo - 1).padStart(2, "0")}`;
+  }
+
+  const m1 = prevMonth(month);
+  const m2 = prevMonth(m1);
+  const m3 = prevMonth(m2);
+
+  const prevTotals = new Map<number, number[]>();
+  for (const m of [m1, m2, m3]) {
+    const tx = db.prepare(
+      "SELECT categoryId, amount FROM transactions WHERE substr(transactionDate,1,7) = ? AND direction = 'expense' AND categoryId IS NOT NULL"
+    ).all(m) as { categoryId: number; amount: number }[];
+    tx.forEach(t => {
+      if (!prevTotals.has(t.categoryId)) prevTotals.set(t.categoryId, []);
+      prevTotals.get(t.categoryId)!.push(t.amount);
+    });
+  }
+
+  // Compute averages and find anomalies
+  const categories = db.prepare("SELECT id, name FROM categories WHERE parentId IS NOT NULL").all() as { id: number; name: string }[];
+  const catMap = new Map(categories.map(c => [c.id, c.name]));
+
+  const anomalies: { category: string; thisMonth: number; average: number; changePercent: number }[] = [];
+
+  for (const [catId, thisMonth] of currentTotals) {
+    const prevAmounts = prevTotals.get(catId) || [];
+    if (prevAmounts.length === 0) continue;
+
+    const avgPerMonth = prevAmounts.reduce((s, a) => s + a, 0) / 3;
+    if (avgPerMonth < 50) continue; // skip tiny categories
+
+    const changePercent = Math.round(((thisMonth - avgPerMonth) / avgPerMonth) * 100);
+    if (Math.abs(changePercent) > 25) {
+      anomalies.push({
+        category: catMap.get(catId) || "Other",
+        thisMonth: Math.round(thisMonth),
+        average: Math.round(avgPerMonth),
+        changePercent,
+      });
+    }
+  }
+
+  return anomalies.sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent)).slice(0, 5);
+}
+
+function computeRecurringChanges(db: Database.Database, month: string): { merchant: string; was: number; now: number; change: string }[] {
+  function prevMonth(m: string): string {
+    const [y, mo] = m.split("-").map(Number);
+    if (mo === 1) return `${y - 1}-12`;
+    return `${y}-${String(mo - 1).padStart(2, "0")}`;
+  }
+
+  const prev = prevMonth(month);
+
+  // Get recurring transactions this month
+  const currentRecurring = db.prepare(
+    "SELECT merchantName, SUM(amount) as total FROM transactions WHERE substr(transactionDate,1,7) = ? AND isRecurring = 1 AND merchantName IS NOT NULL GROUP BY merchantName"
+  ).all(month) as { merchantName: string; total: number }[];
+
+  // Get same merchants last month
+  const prevRecurring = db.prepare(
+    "SELECT merchantName, SUM(amount) as total FROM transactions WHERE substr(transactionDate,1,7) = ? AND isRecurring = 1 AND merchantName IS NOT NULL GROUP BY merchantName"
+  ).all(prev) as { merchantName: string; total: number }[];
+
+  const prevMap = new Map(prevRecurring.map(r => [r.merchantName, r.total]));
+
+  const changes: { merchant: string; was: number; now: number; change: string }[] = [];
+  for (const { merchantName, total } of currentRecurring) {
+    const prevTotal = prevMap.get(merchantName);
+    if (prevTotal && Math.abs(total - prevTotal) > 5) {
+      changes.push({
+        merchant: merchantName,
+        was: Math.round(prevTotal),
+        now: Math.round(total),
+        change: total > prevTotal ? "increased" : "decreased",
+      });
+    }
+  }
+
+  return changes.slice(0, 5);
 }
 
 export function gatherPromptContext(db: Database.Database, month: string, intention?: string): PromptContext {
@@ -161,6 +270,9 @@ export function gatherPromptContext(db: Database.Database, month: string, intent
     savingsRate > prevSavingsRate + 5 ? "improving" :
     savingsRate < prevSavingsRate - 5 ? "declining" : "stable";
 
+  const categoryAnomalies = computeCategoryAnomalies(db, month);
+  const recurringChanges = computeRecurringChanges(db, month);
+
   return {
     month,
     totalIncome,
@@ -173,5 +285,7 @@ export function gatherPromptContext(db: Database.Database, month: string, intent
     trends: notableTrends,
     monthOverMonth: { incomeChange, expenseChange },
     savingsTrajectory,
+    categoryAnomalies,
+    recurringChanges,
   };
 }

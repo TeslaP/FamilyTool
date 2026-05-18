@@ -101,3 +101,14 @@ CREATE TABLE IF NOT EXISTS session_reflections (
   closingNote TEXT,
   createdAt TEXT NOT NULL DEFAULT (datetime('now'))
 );
+
+CREATE TABLE IF NOT EXISTS temporal_reflections (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  periodStart TEXT NOT NULL,
+  periodEnd TEXT NOT NULL,
+  reflection TEXT NOT NULL,
+  inputHash TEXT,
+  generatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+  updatedAt TEXT,
+  UNIQUE(periodStart, periodEnd)
+);

@@ -146,6 +146,17 @@ class ApiClient {
     const query = month ? `?month=${month}` : "";
     return this.request<any[]>(`/session${query}`);
   }
+
+  async getTemporalReflection(from: string, to: string) {
+    return this.request<{ exists: boolean; reflection: string | null; generatedAt?: string; dataChanged?: boolean }>(`/reflections/temporal?from=${from}&to=${to}`);
+  }
+
+  async generateTemporalReflection(from: string, to: string) {
+    return this.request<{ reflection: string; inputHash: string }>("/reflections/temporal/generate", {
+      method: "POST",
+      body: JSON.stringify({ from, to }),
+    });
+  }
 }
 
 export const api = new ApiClient();

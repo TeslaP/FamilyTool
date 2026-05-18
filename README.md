@@ -66,22 +66,25 @@ The AI reflection references trends across months, previous session notes, and u
 - OpenAI (gpt-4o-mini) with Dutch banking context
 - Transfer detection (own accounts, credit cards, investments)
 - Rule learning from corrections
+- ~400 pre-seeded rules from historical data (90%+ auto-categorisation)
 - Confidence scoring, cached results
 - Graceful fallback without API key
 
 ### Dashboard
 **Overview** — calm monthly reflection:
 - Hero metric with count-up animation
+- Temporal reflection (scope-adaptive note for the period)
 - Category spending grid
 - Session reflection display
 - Entry point to Horizon Sessions
 
 **Detail** — scrollable operational report:
 - Monthly metrics
+- Temporal reflection block (adapts depth to selected timeframe)
 - Weekly pacing (runway awareness)
 - Category + merchant breakdowns
 - Year trajectory (savings progress, YoY spending)
-- AI observations
+- AI observations with category anomaly detection
 
 ### Weekly Pacing
 Reframes budgeting as runway awareness. "How is this month unfolding?" rather than "You are over budget."
@@ -223,6 +226,8 @@ Key architectural decisions:
 | POST | `/api/session/reflect` | Generate session reflection |
 | POST | `/api/session/save` | Save session |
 | GET | `/api/session` | Get session history |
+| GET | `/api/reflections/temporal` | Get cached temporal reflection |
+| POST | `/api/reflections/temporal/generate` | Generate temporal reflection |
 | GET | `/api/trajectory` | Year trajectory data |
 | POST | `/api/summary/generate` | Generate AI summary |
 
@@ -246,6 +251,12 @@ npx tsc --noEmit -p server/tsconfig.json
 
 # Run AI categorisation on pending transactions
 cd server && npx tsx categorise-pending.ts
+
+# Seed categorisation rules from spreadsheet data
+cd server && npx tsx seed-rules.ts
+
+# Restore sample DB (pre-categorised transactions)
+cd server && npx tsx restore-sample-db.ts
 ```
 
 ---
