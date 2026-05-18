@@ -18,6 +18,7 @@ import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { PageLoader } from "../components/PageLoader";
 import { FadeInSection } from "../components/FadeInSection";
+import { PacingChart } from "../components/PacingChart";
 import { TemporalReflectionBlock } from "../components/TemporalReflectionBlock";
 import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 import type { Transaction, Category } from "../types";
@@ -40,28 +41,40 @@ function WeeklyPacingSection({ month }: { month: string }) {
 
   if (loading || !data) return <div className="text-stone-400 text-sm">Loading weekly data...</div>;
 
-  const { weeks, projection } = data;
+  const { weeks, projection, totalIncome } = data;
   const trendColor = projection.trend === "tightening" ? "text-amber-600" :
                      projection.trend === "improving" ? "text-green-700" : "text-stone-500";
+
+  // Build chart data
+  const chartData = weeks.map((week: any) => ({
+    label: `W${week.weekNum}`,
+    amount: Math.round(week.spent),
+  }));
+
+  // Budget pace = total income divided by number of weeks
+  const budgetPerWeek = weeks.length > 0 ? Math.round(totalIncome / weeks.length) : undefined;
 
   return (
     <section>
       <h3 className="text-sm font-medium text-stone-700 mb-4">Weekly pacing</h3>
-      <div className="space-y-2 mb-4">
+
+      <PacingChart data={chartData} budgetPerPeriod={budgetPerWeek} />
+
+      <div className="space-y-1.5 mt-4">
         {weeks.map((week: any, i: number) => (
           <div key={week.weekNum} className="flex items-center gap-3 text-sm">
-            <span className="text-stone-400 w-14">Week {week.weekNum}</span>
+            <span className="text-stone-400 w-10">W{week.weekNum}</span>
             <span className="text-stone-300">&middot;</span>
-            <span className="text-stone-600">{formatCurrency(week.spent)} spent</span>
+            <span className="text-stone-600 tabular-nums">{formatCurrency(week.spent)} spent</span>
             <span className="text-stone-300">&middot;</span>
-            <span className={cn("font-medium", week.remaining >= 0 ? "text-stone-900" : "text-red-600")}>
+            <span className={cn("tabular-nums", "text-stone-700")}>
               {formatCurrency(week.remaining)} left
             </span>
             {i === weeks.length - 1 && <span className="w-1.5 h-1.5 rounded-full bg-stone-400 ml-1" />}
           </div>
         ))}
       </div>
-      <p className="text-sm text-stone-400">
+      <p className="text-sm text-stone-400 mt-3">
         Projected month-end: {formatCurrency(projection.remaining)} &middot; <span className={trendColor}>{projection.trend}</span>
       </p>
     </section>
