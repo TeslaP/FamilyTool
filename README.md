@@ -267,6 +267,7 @@ cd server && npx tsx restore-sample-db.ts
 - [Design system (typography + colours)](docs/superpowers/specs/2026-05-14-design-system.md)
 - [Dashboard evolution](docs/superpowers/specs/2026-05-14-dashboard-evolution-design.md)
 - [Horizon Sessions MVP](docs/superpowers/specs/2026-05-16-horizon-sessions-mvp.md)
+- [Phase 1 requirements](docs/superpowers/specs/2026-05-18-phase1-requirements.md)
 - [Future plans](docs/FUTURE.md)
 
 ---
@@ -274,9 +275,9 @@ cd server && npx tsx restore-sample-db.ts
 ## Status
 
 Current focus:
-- Horizon Sessions (contextual reflections, financial memory)
-- Atmospheric UI refinement
-- Local-first reliability
+- Session history integrated into Detail mode
+- Intention carry-over across months
+- AI prompt tuning (ongoing quality improvement)
 
 Deferred:
 - Product rename (Horizon branding migration)
@@ -284,7 +285,7 @@ Deferred:
 - Bank API sync
 - Mobile app
 - Cloud sync
-- Desktop packaging
+- Desktop packaging (Tauri)
 
 ---
 

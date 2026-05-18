@@ -58,12 +58,6 @@
 
 Only the operational improvements that strengthen the reflection experience.
 
-### Seed Data Bootstrapping (HIGH PRIORITY)
-- Extract ~442 merchant→category pairs from existing spreadsheet as rules
-- Reduces AI categorisation calls to near-zero for known merchants
-- One-time setup script, massive friction reduction
-- Makes the tool usable day-one without burning API tokens
-
 ### Recurring Transaction Detection
 - Auto-flag monthly patterns (same merchant, similar amount, monthly cadence)
 - Surface in forecast as committed costs
@@ -74,6 +68,12 @@ Only the operational improvements that strengthen the reflection experience.
 - Handle edge cases in TAB/XLS parsing
 - Better error messages for malformed files
 - Progress indication during large AI batch processing
+
+### Year-End Reflection (when 6+ months of sessions exist)
+- Auto-generated annual retrospective from all sessions + trajectory
+- Not an annual report — an annual *reflection*
+- Surfaces: seasonal patterns, intention progress, spending themes
+- Deferred until real longitudinal data exists
 
 ---
 
