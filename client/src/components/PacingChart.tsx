@@ -1,4 +1,4 @@
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Cell } from "recharts";
 import { formatCurrency } from "../lib/utils";
 
 interface PacingDataPoint {
@@ -10,10 +10,18 @@ interface Props {
   data: PacingDataPoint[];
   budgetPerPeriod?: number;
   height?: number;
+  activeIndex?: number | null;
+  onBarClick?: (index: number | null) => void;
 }
 
-export function PacingChart({ data, budgetPerPeriod, height = 140 }: Props) {
+export function PacingChart({ data, budgetPerPeriod, height = 140, activeIndex, onBarClick }: Props) {
   if (data.length === 0) return null;
+
+  const handleClick = (_entry: any, index: number) => {
+    if (onBarClick) {
+      onBarClick(activeIndex === index ? null : index);
+    }
+  };
 
   return (
     <div>
@@ -30,7 +38,14 @@ export function PacingChart({ data, budgetPerPeriod, height = 140 }: Props) {
             formatter={(value) => formatCurrency(Number(value))}
             contentStyle={{ fontSize: 12, border: "1px solid #e7e5e4", borderRadius: 8, boxShadow: "none" }}
           />
-          <Bar dataKey="amount" fill="#57534e" radius={[3, 3, 0, 0]} />
+          <Bar dataKey="amount" radius={[3, 3, 0, 0]} onClick={handleClick} cursor="pointer">
+            {data.map((_, index) => (
+              <Cell
+                key={index}
+                fill={activeIndex === index ? "#44403c" : activeIndex !== null && activeIndex !== undefined ? "#d6d3d1" : "#57534e"}
+              />
+            ))}
+          </Bar>
           {budgetPerPeriod && (
             <ReferenceLine
               y={budgetPerPeriod}

@@ -34,52 +34,7 @@ function formatCurrencyWhole(amount: number): string {
   return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
 }
 
-// --- Weekly Pacing Section (fetches its own data) ---
-
-function WeeklyPacingSection({ month }: { month: string }) {
-  const { data, loading } = useApi(() => api.getPacing(month), [month]);
-
-  if (loading || !data) return <div className="text-stone-400 text-sm">Loading weekly data...</div>;
-
-  const { weeks, projection, totalIncome } = data;
-  const trendColor = projection.trend === "tightening" ? "text-amber-600" :
-                     projection.trend === "improving" ? "text-green-700" : "text-stone-500";
-
-  // Build chart data
-  const chartData = weeks.map((week: any) => ({
-    label: `W${week.weekNum}`,
-    amount: Math.round(week.spent),
-  }));
-
-  // Budget pace = total income divided by number of weeks
-  const budgetPerWeek = weeks.length > 0 ? Math.round(totalIncome / weeks.length) : undefined;
-
-  return (
-    <section>
-      <h3 className="text-sm font-medium text-stone-700 mb-4">Weekly pacing</h3>
-
-      <PacingChart data={chartData} budgetPerPeriod={budgetPerWeek} />
-
-      <div className="space-y-1.5 mt-4">
-        {weeks.map((week: any, i: number) => (
-          <div key={week.weekNum} className="flex items-center gap-3 text-sm">
-            <span className="text-stone-400 w-10">W{week.weekNum}</span>
-            <span className="text-stone-300">&middot;</span>
-            <span className="text-stone-600 tabular-nums">{formatCurrency(week.spent)} spent</span>
-            <span className="text-stone-300">&middot;</span>
-            <span className={cn("tabular-nums", "text-stone-700")}>
-              {formatCurrency(week.remaining)} left
-            </span>
-            {i === weeks.length - 1 && <span className="w-1.5 h-1.5 rounded-full bg-stone-400 ml-1" />}
-          </div>
-        ))}
-      </div>
-      <p className="text-sm text-stone-400 mt-3">
-        Projected month-end: {formatCurrency(projection.remaining)} &middot; <span className={trendColor}>{projection.trend}</span>
-      </p>
-    </section>
-  );
-}
+// WeeklyPacingSection removed — pacing logic now lives inline in DetailMode
 
 // --- Year Trajectory Section (fetches its own data) ---
 
@@ -318,7 +273,6 @@ export function Dashboard() {
           totalExpenses={totalExpenses}
           netCashflow={netCashflow}
           savingsRate={savingsRate}
-          chartData={chartData}
           month={month}
           range={range}
           lastSession={lastSession}
@@ -443,7 +397,6 @@ function DetailMode({
   totalExpenses,
   netCashflow,
   savingsRate,
-  chartData,
   month,
   range,
   lastSession,
@@ -456,7 +409,6 @@ function DetailMode({
   totalExpenses: number;
   netCashflow: number;
   savingsRate: number;
-  chartData: { name: string; amount: number; id: number }[];
   month: string;
   range?: MonthRange | null;
   lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
@@ -468,6 +420,79 @@ function DetailMode({
   const isSingleMonth = !range;
   const [reflectionOpen, setReflectionOpen] = useState(initialReflectionOpen || false);
   const [categoryExpanded, setCategoryExpanded] = useState(false);
+  const [selectedPeriod, setSelectedPeriod] = useState<number | null>(null);
+
+  // Fetch pacing data for single month
+  const { data: pacingData } = useApi(() => isSingleMonth ? api.getPacing(month) : Promise.resolve(null), [month, isSingleMonth]);
+
+  // Pacing chart data — adapts to scope
+  let pacingChartData: { label: string; amount: number; from: string; to: string }[] = [];
+
+  if (isSingleMonth && pacingData?.weeks) {
+    pacingChartData = pacingData.weeks.map((w: any) => ({
+      label: `W${w.weekNum}`,
+      amount: Math.round(w.spent),
+      from: w.startDate,
+      to: w.endDate,
+    }));
+  } else if (!isSingleMonth) {
+    // Multi-month: build monthly bars from transactions
+    const monthlyTotals = new Map<string, number>();
+    transactions.filter(t => t.direction === "expense").forEach(t => {
+      const m = t.transactionDate.slice(0, 7);
+      monthlyTotals.set(m, (monthlyTotals.get(m) || 0) + t.amount);
+    });
+
+    const months = Array.from(monthlyTotals.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    const MONTH_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+    pacingChartData = months.map(([m, amount]) => ({
+      label: MONTH_SHORT[parseInt(m.split("-")[1]) - 1],
+      amount: Math.round(amount),
+      from: m,
+      to: m,
+    }));
+  }
+
+  // Filter transactions if a period is selected
+  let filteredTransactions = transactions;
+  if (selectedPeriod !== null && pacingChartData[selectedPeriod]) {
+    const period = pacingChartData[selectedPeriod];
+    if (isSingleMonth) {
+      // Filter by week date range
+      filteredTransactions = transactions.filter(t =>
+        t.transactionDate >= period.from && t.transactionDate <= period.to
+      );
+    } else {
+      // Filter by month
+      filteredTransactions = transactions.filter(t =>
+        t.transactionDate.slice(0, 7) === period.from
+      );
+    }
+  }
+
+  // Category totals — computed from filtered transactions
+  const categoryTotals = new Map<string, { amount: number; id: number }>();
+  filteredTransactions
+    .filter((t) => t.direction === "expense" && t.categoryId)
+    .forEach((t) => {
+      const cat = allCategories.find((c) => c.id === t.categoryId);
+      if (!cat) return;
+      const parentCat = cat.parentId ? allCategories.find((c) => c.id === cat.parentId) : cat;
+      const name = parentCat?.name || cat.name;
+      const id = parentCat?.id || cat.id;
+      const existing = categoryTotals.get(name);
+      categoryTotals.set(name, { amount: (existing?.amount || 0) + t.amount, id });
+    });
+
+  const displayChartData = Array.from(categoryTotals.entries())
+    .map(([name, { amount, id }]) => ({ name, amount: Math.round(amount), id }))
+    .sort((a, b) => b.amount - a.amount)
+    .slice(0, 8);
+
+  const displayTotalExpenses = filteredTransactions
+    .filter(t => t.direction === "expense")
+    .reduce((s, t) => s + t.amount, 0);
 
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
@@ -529,29 +554,65 @@ function DetailMode({
         </div>
       </FadeInSection>
 
-      {/* 3. Weekly pacing — rhythm (only for single month) */}
-      {isSingleMonth && <FadeInSection><WeeklyPacingSection month={month} /></FadeInSection>}
+      {/* 3. Pacing — weekly or monthly rhythm */}
+      {pacingChartData.length > 0 && (
+        <FadeInSection>
+          <section>
+            <h3 className="text-sm font-medium text-stone-700 mb-4">
+              {isSingleMonth ? "Weekly pacing" : "Monthly pacing"}
+            </h3>
+            <PacingChart
+              data={pacingChartData}
+              budgetPerPeriod={isSingleMonth && pacingData ? Math.round(pacingData.totalIncome / pacingChartData.length) : undefined}
+              activeIndex={selectedPeriod}
+              onBarClick={setSelectedPeriod}
+            />
+            {isSingleMonth && pacingData?.projection && (
+              <p className="text-sm text-stone-400 mt-3">
+                Projected month-end: {formatCurrency(pacingData.projection.remaining)} &middot; <span className={
+                  pacingData.projection.trend === "tightening" ? "text-amber-600" :
+                  pacingData.projection.trend === "improving" ? "text-green-700" : "text-stone-500"
+                }>{pacingData.projection.trend}</span>
+              </p>
+            )}
+          </section>
+        </FadeInSection>
+      )}
 
-      {/* 4. Categories — where the money went */}
+      {/* 4. Categories — where the money went (filtered by selected period) */}
       <FadeInSection>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-stone-700">Spending by category</h3>
-          <button
-            onClick={() => setCategoryExpanded(!categoryExpanded)}
-            className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
-          >
-            {categoryExpanded ? "Show summary" : "Show breakdown"}
-          </button>
+          <h3 className="text-sm font-medium text-stone-700">
+            {selectedPeriod !== null && pacingChartData[selectedPeriod]
+              ? `Spending in ${pacingChartData[selectedPeriod].label}`
+              : "Spending by category"}
+          </h3>
+          <div className="flex items-center gap-3">
+            {selectedPeriod !== null && (
+              <button
+                onClick={() => setSelectedPeriod(null)}
+                className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
+              >
+                Show all
+              </button>
+            )}
+            <button
+              onClick={() => setCategoryExpanded(!categoryExpanded)}
+              className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
+            >
+              {categoryExpanded ? "Show summary" : "Show breakdown"}
+            </button>
+          </div>
         </div>
 
         {categoryExpanded ? (
           <div className="space-y-5">
-            {chartData.map(cat => {
+            {displayChartData.map(cat => {
               const children = allCategories.filter(c => c.parentId === cat.id);
               const childTotals = children
                 .map(child => ({
                   name: child.name,
-                  amount: transactions.filter(t => t.direction === "expense" && t.categoryId === child.id).reduce((s, t) => s + t.amount, 0),
+                  amount: filteredTransactions.filter(t => t.direction === "expense" && t.categoryId === child.id).reduce((s, t) => s + t.amount, 0),
                 }))
                 .filter(c => c.amount > 0)
                 .sort((a, b) => b.amount - a.amount);
@@ -561,7 +622,7 @@ function DetailMode({
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-stone-700">{cat.name}</span>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, totalExpenses)}</span>
+                      <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, displayTotalExpenses)}</span>
                       <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
                     </div>
                   </div>
@@ -571,7 +632,7 @@ function DetailMode({
                         <div key={child.name} className="flex items-center justify-between py-1.5">
                           <span className="text-sm text-stone-400">{child.name}</span>
                           <div className="flex items-center gap-3">
-                            <span className="text-sm text-stone-300 tabular-nums w-10 text-right">{formatPercent(child.amount, totalExpenses)}</span>
+                            <span className="text-sm text-stone-300 tabular-nums w-10 text-right">{formatPercent(child.amount, displayTotalExpenses)}</span>
                             <span className="text-sm tabular-nums text-stone-600 w-24 text-right">{formatCurrencyWhole(child.amount)}</span>
                           </div>
                         </div>
@@ -584,11 +645,11 @@ function DetailMode({
           </div>
         ) : (
           <div className="space-y-0.5">
-            {chartData.map(cat => (
+            {displayChartData.map(cat => (
               <div key={cat.id} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-stone-100/30 transition-colors">
                 <span className="text-sm text-stone-600">{cat.name}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, totalExpenses)}</span>
+                  <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, displayTotalExpenses)}</span>
                   <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
                 </div>
               </div>
