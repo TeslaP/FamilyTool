@@ -1,10 +1,25 @@
 # FamilyTool
 
-A local-first financial organiser with an optional reflective layer.
+An open-source, local-first personal finance awareness tool.
 
-FamilyTool combines practical transaction management — import, categorise, review, forecast — with a guided monthly reflection experience called **Horizon Sessions**.
+No subscriptions. No cloud lock-in. No data harvesting. Your finances stay on your machine, fully under your control.
 
-The goal is not optimisation or budgeting pressure. The goal is financial self-awareness.
+FamilyTool replaces paid finance apps with a customisable, self-hosted alternative that combines practical transaction management with guided monthly reflection — called **Horizon Sessions**.
+
+Everything is open source (AGPL-3.0), fully customisable, and actively maintained. The goal: a personal finance tool you actually own, that helps you understand your financial life without pressure or gamification.
+
+---
+
+## Why This Exists
+
+Most personal finance tools are either:
+- **Subscription SaaS** — paying monthly for basic budgeting
+- **Bank apps** — limited, non-customisable, designed for engagement
+- **Spreadsheets** — powerful but high-maintenance
+
+FamilyTool is the third option: **open source software you run locally.** Import your bank exports, let AI categorise them, review what happened, reflect on the month. No recurring cost, no vendor dependency, no limits on customisation.
+
+It's built for people who want financial awareness without paying for it — and who value owning their data completely.
 
 ---
 
@@ -274,21 +289,26 @@ cd server && npx tsx restore-sample-db.ts
 
 ## Status
 
+Actively maintained. This is a personal tool that I use monthly and continue improving.
+
 Current focus:
-- Session history integrated into Detail mode
-- Intention carry-over across months
-- AI prompt tuning (ongoing quality improvement)
+- Pacing + category connected views
+- AI reflection quality tuning
+- Salary rhythm architecture (income timing awareness)
+- Visual polish iterations
+
+Contributions and feedback welcome: [paveltess@gmail.com](mailto:paveltess@gmail.com)
 
 Deferred:
-- Product rename (Horizon branding migration)
-- Multi-user support
+- Desktop packaging (Tauri)
+- Multi-account support
 - Bank API sync
 - Mobile app
-- Cloud sync
-- Desktop packaging (Tauri)
 
 ---
 
 ## License
 
 AGPL-3.0. See [LICENSE](LICENSE).
+
+Free to use, modify, and self-host. If you run it as a service, share your modifications back.

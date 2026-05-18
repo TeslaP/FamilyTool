@@ -6,17 +6,17 @@
 - Transaction import pipeline (TAB/XLS, preview/confirm, duplicate detection)
 - AI categorisation (OpenAI, Dutch banking context, child process, caching, rules)
 - **~400 pre-seeded categorisation rules** (90%+ auto-categorisation for known merchants)
-- Dashboard: Overview (hero + categories + temporal reflection) + Detail (scrollable report)
+- Dashboard: Overview (hero + categories) + Detail (scrollable connected report)
+- **Pacing chart + category breakdown as one connected system** (click bar → filters categories)
+- **Category breakdown:** summary/expanded toggle, percentages, <1% handling, whole euros
 - **Temporal reflection system** (scope-adaptive: month → quarter → half → year)
-- Horizon Sessions: 4-step reflection flow with continuity
+- Horizon Sessions: 4-step reflection flow with continuity + notable transactions
 - Session History archive (text-led, months as chapters)
 - Contextual AI: trend signals, category anomalies, recurring cost changes, MoM awareness
-- In-session notable transaction review (3+ threshold, read-only grounding)
 - Calendar: range presets, year navigation, "Calendar year" preset, chevron-from-end behavior
 - Forecast: fixed/variable breakdown, 1-month / 3-month / till-EOY periods
-- Visual design system: Inter + Newsreader, stone palette, seasonal tints, unified motion
-- Session mode transition (400ms blur threshold)
-- Animated Horizon logo, page crossfades, scroll fade-in, hero count-up
+- Visual design system: 4 typographic modes, unified motion, seasonal tints, neutral hero
+- Sidebar: Dashboard, Forecast, Reflections, Transactions, Import + About popup
 
 ### Architecture
 - Prompt registry (categorise, reflect, analyse — separate purposes)
