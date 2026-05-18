@@ -324,21 +324,36 @@ export function Forecast() {
           <div className="space-y-3 text-sm">
             <div className="flex justify-between">
               <span className="text-stone-600">Projected income</span>
-              <span className="font-medium text-stone-900">{formatCurrency(projectedIncomeTotal)}</span>
+              <span className="font-medium tabular-nums text-stone-900">{formatCurrencyWhole(projectedIncomeTotal)}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-stone-600">Fixed costs</span>
-              <span className="font-medium text-stone-900">−{formatCurrency(totalFixed)}</span>
+              <span className="font-medium tabular-nums text-stone-900">−{formatCurrencyWhole(totalFixed)}</span>
             </div>
-            <div className="border-t border-stone-100 pt-2 space-y-2">
+            <div className="flex justify-between">
+              <span className="text-stone-600">Variable costs (avg)</span>
+              <span className="font-medium tabular-nums text-stone-900">−{formatCurrencyWhole(totalVariableAvg * monthsInPeriod)}</span>
+            </div>
+            <div className="border-t border-stone-100 pt-3 space-y-3">
+              <p className="text-xs text-stone-400">
+                Projected savings{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
+              </p>
               <div className="flex justify-between">
-                <span className="text-stone-400">Based on average</span>
-                <span className="tabular-nums text-stone-600">{formatCurrency(projectedIncomeTotal - totalFixed - totalVariableAvg * monthsInPeriod)}</span>
+                <span className="text-stone-500">If spending as usual</span>
+                <span className="tabular-nums text-stone-700">
+                  {(projectedIncomeTotal - totalFixed - totalVariableAvg * monthsInPeriod) >= 0 ? "+" : ""}
+                  {formatCurrencyWhole(projectedIncomeTotal - totalFixed - totalVariableAvg * monthsInPeriod)}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-stone-600">Based on your budget</span>
-                <span className="font-bold tabular-nums text-stone-900">{formatCurrency(projectedIncomeTotal - totalFixed - totalVariableBudget * monthsInPeriod)}</span>
-              </div>
+              {totalVariableBudget > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-stone-600">If hitting your budget</span>
+                  <span className="font-medium tabular-nums text-stone-900">
+                    {(projectedIncomeTotal - totalFixed - totalVariableBudget * monthsInPeriod) >= 0 ? "+" : ""}
+                    {formatCurrencyWhole(projectedIncomeTotal - totalFixed - totalVariableBudget * monthsInPeriod)}
+                  </span>
+                </div>
+              )}
             </div>
             <div className="border-t border-stone-100 pt-2 text-xs text-stone-400">
               Based on 12-month average (outliers excluded)
