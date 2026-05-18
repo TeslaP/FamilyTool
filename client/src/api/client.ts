@@ -157,6 +157,17 @@ class ApiClient {
       body: JSON.stringify({ from, to }),
     });
   }
+
+  async getBudgets(month: string) {
+    return this.request<{ categoryId: number; budgetAmount: number; isFixed: number }[]>(`/budgets?month=${month}`);
+  }
+
+  async saveBudgets(month: string, budgets: { categoryId: number; budgetAmount: number; isFixed: boolean }[]) {
+    return this.request<{ saved: number }>("/budgets/bulk", {
+      method: "POST",
+      body: JSON.stringify({ month, budgets }),
+    });
+  }
 }
 
 export const api = new ApiClient();

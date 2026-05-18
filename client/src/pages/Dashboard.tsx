@@ -425,6 +425,9 @@ function DetailMode({
   // Fetch pacing data for single month
   const { data: pacingData } = useApi(() => isSingleMonth ? api.getPacing(month) : Promise.resolve(null), [month, isSingleMonth]);
 
+  // Fetch budgets for the current month
+  const { data: budgets } = useApi(() => api.getBudgets(month), [month]);
+
   // Pacing chart data — adapts to scope
   let pacingChartData: { label: string; amount: number; from: string; to: string }[] = [];
 
@@ -563,7 +566,12 @@ function DetailMode({
             </h3>
             <PacingChart
               data={pacingChartData}
-              budgetPerPeriod={isSingleMonth && pacingData ? Math.round(pacingData.totalIncome / pacingChartData.length) : undefined}
+              budgetPerPeriod={(() => {
+                if (!isSingleMonth) return undefined;
+                const totalBudget = budgets ? budgets.reduce((s, b) => s + b.budgetAmount, 0) : null;
+                if (totalBudget) return Math.round(totalBudget / pacingChartData.length);
+                return pacingData ? Math.round(pacingData.totalIncome / pacingChartData.length) : undefined;
+              })()}
               activeIndex={selectedPeriod}
               onBarClick={setSelectedPeriod}
             />
@@ -617,11 +625,21 @@ function DetailMode({
                 .filter(c => c.amount > 0)
                 .sort((a, b) => b.amount - a.amount);
 
+              const catBudget = budgets?.find(b => b.categoryId === cat.id);
+
               return (
                 <div key={cat.id}>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-stone-700">{cat.name}</span>
                     <div className="flex items-center gap-3">
+                      {catBudget && (() => {
+                        const delta = cat.amount - catBudget.budgetAmount;
+                        return (
+                          <span className={cn("text-sm tabular-nums w-24 text-right", delta > 0 ? "text-red-500" : "text-green-600")}>
+                            {delta > 0 ? `${formatCurrencyWhole(delta)} over` : delta < 0 ? `${formatCurrencyWhole(Math.abs(delta))} left` : ""}
+                          </span>
+                        );
+                      })()}
                       <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, displayTotalExpenses)}</span>
                       <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
                     </div>
@@ -645,15 +663,26 @@ function DetailMode({
           </div>
         ) : (
           <div className="space-y-0.5">
-            {displayChartData.map(cat => (
-              <div key={cat.id} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-stone-100/30 transition-colors">
-                <span className="text-sm text-stone-600">{cat.name}</span>
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, displayTotalExpenses)}</span>
-                  <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
+            {displayChartData.map(cat => {
+              const catBudget = budgets?.find(b => b.categoryId === cat.id);
+              return (
+                <div key={cat.id} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-stone-100/30 transition-colors">
+                  <span className="text-sm text-stone-600">{cat.name}</span>
+                  <div className="flex items-center gap-3">
+                    {catBudget && (() => {
+                      const delta = cat.amount - catBudget.budgetAmount;
+                      return (
+                        <span className={cn("text-sm tabular-nums w-24 text-right", delta > 0 ? "text-red-500" : "text-green-600")}>
+                          {delta > 0 ? `${formatCurrencyWhole(delta)} over` : delta < 0 ? `${formatCurrencyWhole(Math.abs(delta))} left` : ""}
+                        </span>
+                      );
+                    })()}
+                    <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, displayTotalExpenses)}</span>
+                    <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </FadeInSection>

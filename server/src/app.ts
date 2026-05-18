@@ -12,6 +12,7 @@ import { createSummaryRouter } from "./routes/summary.js";
 import { createTrajectoryRouter } from "./routes/trajectory.js";
 import { createSessionRouter } from "./routes/session.js";
 import { createReflectionsRouter } from "./routes/reflections.js";
+import { createBudgetsRouter } from "./routes/budgets.js";
 import { authMiddleware } from "./middleware/auth.js";
 
 export function createApp() {
@@ -38,6 +39,7 @@ export function createApp() {
   app.use("/api/trajectory", authMiddleware(config.jwtSecret), createTrajectoryRouter(db));
   app.use("/api/session", authMiddleware(config.jwtSecret), createSessionRouter(db));
   app.use("/api/reflections", authMiddleware(config.jwtSecret), createReflectionsRouter(db));
+  app.use("/api/budgets", authMiddleware(config.jwtSecret), createBudgetsRouter(db));
 
   return app;
 }

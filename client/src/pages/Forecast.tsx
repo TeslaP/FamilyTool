@@ -1,9 +1,13 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { api } from "../api/client";
 import { useApi } from "../hooks/useApi";
 import { useMonthParam } from "../hooks/useMonthParam";
 import { formatCurrency, getCurrentMonth, getNextMonth, getPreviousMonth, cn } from "../lib/utils";
 import { MonthSelector } from "../components/MonthSelector";
+
+function formatCurrencyWhole(amount: number): string {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
+}
 
 export function Forecast() {
   const { month: selectedMonth, range, setMonth: setSelectedMonth, setRange } = useMonthParam(getNextMonth(getCurrentMonth()));
@@ -17,6 +21,7 @@ export function Forecast() {
   const { data: tx2 } = useApi(() => api.getTransactions({ month: month2 }), [selectedMonth]);
   const { data: tx3 } = useApi(() => api.getTransactions({ month: month3 }), [selectedMonth]);
   const { data: categories } = useApi(() => api.getCategories(), []);
+  const { data: savedBudgets } = useApi(() => api.getBudgets(selectedMonth), [selectedMonth]);
 
   const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
 
@@ -39,10 +44,13 @@ export function Forecast() {
         grouped.set(key, { name: cat?.name || "Unknown", amount: t.amount });
       }
     });
-    return Array.from(grouped.entries()).map(([id, { name, amount }]) => ({
-      id, key: `fixed-${id}`, name, amount: Math.round(amount), type: "fixed" as const,
-    }));
-  }, [tx1, categoryMap]);
+    return Array.from(grouped.entries()).map(([id, { name, amount }]) => {
+      const savedAmount = savedBudgets?.find(b => b.categoryId === id)?.budgetAmount;
+      return {
+        id, key: `fixed-${id}`, name, amount: Math.round(savedAmount ?? amount), type: "fixed" as const,
+      };
+    });
+  }, [tx1, categoryMap, savedBudgets]);
 
   // Calculate variable costs (3-month average per category, excluding recurring)
   const variableCosts = useMemo(() => {
@@ -61,9 +69,10 @@ export function Forecast() {
       const total = amounts.reduce((s, a) => s + a, 0);
       const avg = Math.round(total / monthCount);
       const cat = categoryMap.get(id);
-      return { id, key: `variable-${id}`, name: cat?.name || "Unknown", amount: avg, type: "variable" as const };
+      const savedAmount = savedBudgets?.find(b => b.categoryId === id)?.budgetAmount;
+      return { id, key: `variable-${id}`, name: cat?.name || "Unknown", amount: Math.round(savedAmount ?? avg), type: "variable" as const };
     }).filter(c => c.amount > 0).sort((a, b) => b.amount - a.amount);
-  }, [allTransactions, categoryMap, tx1, tx2, tx3]);
+  }, [allTransactions, categoryMap, tx1, tx2, tx3, savedBudgets]);
 
   // Projected income (average of last 3 months)
   const projectedIncome = useMemo(() => {
@@ -83,6 +92,28 @@ export function Forecast() {
     next.set(key, value);
     setOverrides(next);
   };
+
+  // Auto-save on blur
+  const handleBlur = useCallback(async () => {
+    const allBudgets = [
+      ...fixedCosts.map(item => ({
+        categoryId: item.id,
+        budgetAmount: getValue(item.key, item.amount),
+        isFixed: true,
+      })),
+      ...variableCosts.map(item => ({
+        categoryId: item.id,
+        budgetAmount: getValue(item.key, item.amount),
+        isFixed: false,
+      })),
+    ];
+    try {
+      await api.saveBudgets(selectedMonth, allBudgets);
+    } catch {
+      // Silently fail — user can retry
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fixedCosts, variableCosts, overrides, selectedMonth]);
 
   // Count months in the active period
   const monthsInPeriod = range
@@ -116,6 +147,8 @@ export function Forecast() {
       </div>
     );
   }
+
+  const isMultiMonth = monthsInPeriod > 1;
 
   return (
     <div className="p-6">
@@ -174,12 +207,28 @@ export function Forecast() {
             {fixedCosts.map(item => (
               <div key={item.key} className="flex items-center justify-between">
                 <span className="text-sm text-stone-600">{item.name}</span>
-                <input
-                  type="number"
-                  value={getValue(item.key, item.amount)}
-                  onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                  className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
-                />
+                {isMultiMonth ? (
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-xs text-stone-400">Projected</span>
+                      <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, item.amount) * monthsInPeriod)}</p>
+                    </div>
+                    {savedBudgets?.find(b => b.categoryId === item.id) && (
+                      <div className="text-right">
+                        <span className="text-xs text-stone-400">Target</span>
+                        <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(savedBudgets.find(b => b.categoryId === item.id)!.budgetAmount * monthsInPeriod)}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    value={getValue(item.key, item.amount)}
+                    onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
+                    onBlur={handleBlur}
+                    className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
+                  />
+                )}
               </div>
             ))}
             {fixedCosts.length === 0 && <p className="text-xs text-stone-400">No recurring costs detected</p>}
@@ -196,12 +245,28 @@ export function Forecast() {
             {variableCosts.slice(0, 10).map(item => (
               <div key={item.key} className="flex items-center justify-between">
                 <span className="text-sm text-stone-600">{item.name}</span>
-                <input
-                  type="number"
-                  value={getValue(item.key, item.amount)}
-                  onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                  className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
-                />
+                {isMultiMonth ? (
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <span className="text-xs text-stone-400">Projected</span>
+                      <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, item.amount) * monthsInPeriod)}</p>
+                    </div>
+                    {savedBudgets?.find(b => b.categoryId === item.id) && (
+                      <div className="text-right">
+                        <span className="text-xs text-stone-400">Target</span>
+                        <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(savedBudgets.find(b => b.categoryId === item.id)!.budgetAmount * monthsInPeriod)}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <input
+                    type="number"
+                    value={getValue(item.key, item.amount)}
+                    onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
+                    onBlur={handleBlur}
+                    className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
+                  />
+                )}
               </div>
             ))}
             {variableCosts.length === 0 && <p className="text-xs text-stone-400">No variable spending data</p>}
