@@ -22,6 +22,17 @@ import { TemporalReflectionBlock } from "../components/TemporalReflectionBlock";
 import { formatCurrency, formatMonth, getNextMonth, cn } from "../lib/utils";
 import type { Transaction, Category } from "../types";
 
+function formatPercent(amount: number, total: number): string {
+  if (total === 0) return "";
+  const pct = (amount / total) * 100;
+  if (pct > 0 && pct < 0.5) return "<1%";
+  return `${Math.round(pct)}%`;
+}
+
+function formatCurrencyWhole(amount: number): string {
+  return new Intl.NumberFormat("nl-NL", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(amount);
+}
+
 // --- Weekly Pacing Section (fetches its own data) ---
 
 function WeeklyPacingSection({ month }: { month: string }) {
@@ -521,8 +532,7 @@ function DetailMode({
         </div>
 
         {categoryExpanded ? (
-          /* Expanded: all parents with sub-categories */
-          <div className="space-y-6">
+          <div className="space-y-5">
             {chartData.map(cat => {
               const children = allCategories.filter(c => c.parentId === cat.id);
               const childTotals = children
@@ -537,14 +547,20 @@ function DetailMode({
                 <div key={cat.id}>
                   <div className="flex items-center justify-between py-2">
                     <span className="text-sm font-medium text-stone-700">{cat.name}</span>
-                    <span className="text-sm font-medium tabular-nums text-stone-900">{formatCurrency(cat.amount)}</span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, totalExpenses)}</span>
+                      <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
+                    </div>
                   </div>
                   {childTotals.length > 0 && (
-                    <div className="ml-4 space-y-1 mt-1">
+                    <div className="ml-4 space-y-0.5 mt-1">
                       {childTotals.map(child => (
-                        <div key={child.name} className="flex items-center justify-between py-1">
+                        <div key={child.name} className="flex items-center justify-between py-1.5">
                           <span className="text-sm text-stone-400">{child.name}</span>
-                          <span className="text-sm tabular-nums text-stone-600">{formatCurrency(child.amount)}</span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm text-stone-300 tabular-nums w-10 text-right">{formatPercent(child.amount, totalExpenses)}</span>
+                            <span className="text-sm tabular-nums text-stone-600 w-24 text-right">{formatCurrencyWhole(child.amount)}</span>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -554,12 +570,14 @@ function DetailMode({
             })}
           </div>
         ) : (
-          /* Summary: just parent categories */
-          <div className="space-y-1">
+          <div className="space-y-0.5">
             {chartData.map(cat => (
               <div key={cat.id} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-stone-100/30 transition-colors">
                 <span className="text-sm text-stone-600">{cat.name}</span>
-                <span className="text-sm font-medium tabular-nums text-stone-900">{formatCurrency(cat.amount)}</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm text-stone-400 tabular-nums w-10 text-right">{formatPercent(cat.amount, totalExpenses)}</span>
+                  <span className="text-sm font-medium tabular-nums text-stone-900 w-24 text-right">{formatCurrencyWhole(cat.amount)}</span>
+                </div>
               </div>
             ))}
           </div>
