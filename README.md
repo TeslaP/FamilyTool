@@ -115,9 +115,12 @@ Longitudinal view: savings progress, investment pacing, year-over-year spending.
 - Review badge in sidebar
 
 ### Forecast
-- Fixed vs variable cost projection
+- Fixed vs variable cost separation (fixed = non-negotiable, variable = discretionary)
+- 12-month trimmed average with outlier exclusion (95% rule)
+- Budget inputs default to €0 — intentional, not assumed
+- Summary: projected savings "if spending as usual" vs "if hitting your budget"
 - Period selector: 1 month / 3 months / Till EOY
-- Editable line items, live recalculation
+- Persists to DB — survives page reload
 
 ### Calendar
 - Month selector with dropdown grid + year navigation
