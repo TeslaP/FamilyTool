@@ -4,7 +4,8 @@ CREATE TABLE IF NOT EXISTS categories (
   parentId INTEGER REFERENCES categories(id),
   type TEXT NOT NULL CHECK(type IN ('income', 'expense', 'transfer')),
   sortOrder INTEGER NOT NULL DEFAULT 0,
-  isActive INTEGER NOT NULL DEFAULT 1
+  isActive INTEGER NOT NULL DEFAULT 1,
+  isFixed INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS import_files (

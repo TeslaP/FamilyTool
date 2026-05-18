@@ -5,6 +5,7 @@ export interface Category {
   type: "income" | "expense" | "transfer";
   sortOrder: number;
   isActive: number;
+  isFixed: number;
 }
 
 export interface Transaction {

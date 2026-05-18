@@ -30,28 +30,25 @@ export function Forecast() {
 
   const categoryMap = useMemo(() => new Map(categories?.map(c => [c.id, c]) || []), [categories]);
 
-  // Calculate fixed costs (recurring transactions)
+  // Calculate fixed costs (categories marked as fixed)
   const fixedCosts = useMemo(() => {
-    if (!tx1) return [];
-    const recurring = tx1.filter(t => t.isRecurring && t.direction === "expense" && t.categoryId);
-    const grouped = new Map<number, { name: string; amount: number }>();
-    recurring.forEach(t => {
-      const cat = categoryMap.get(t.categoryId!);
-      const key = t.categoryId!;
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.amount += t.amount;
-      } else {
-        grouped.set(key, { name: cat?.name || "Unknown", amount: t.amount });
-      }
-    });
-    return Array.from(grouped.entries()).map(([id, { name, amount }]) => {
-      const savedAmount = savedBudgets?.find(b => b.categoryId === id)?.budgetAmount;
+    if (!tx1 || !categories) return [];
+
+    // Get categories marked as fixed
+    const fixedCategories = categories.filter(c => c.isFixed && c.parentId);
+
+    return fixedCategories.map(cat => {
+      // Sum this category's transactions from most recent month
+      const total = tx1
+        .filter(t => t.direction === "expense" && t.categoryId === cat.id)
+        .reduce((s, t) => s + t.amount, 0);
+
+      const savedAmount = savedBudgets?.find(b => b.categoryId === cat.id)?.budgetAmount;
       return {
-        id, key: `fixed-${id}`, name, amount: Math.round(savedAmount ?? amount), type: "fixed" as const,
+        id: cat.id, key: `fixed-${cat.id}`, name: cat.name, amount: Math.round(savedAmount ?? total), type: "fixed" as const,
       };
-    });
-  }, [tx1, categoryMap, savedBudgets]);
+    }).filter(c => c.amount > 0 || savedBudgets?.find(b => b.categoryId === c.id));
+  }, [tx1, categories, savedBudgets]);
 
   // Calculate variable costs — ALL expense categories with 3-month average
   const variableCosts = useMemo(() => {
