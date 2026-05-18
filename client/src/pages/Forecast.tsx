@@ -12,34 +12,42 @@ function formatCurrencyWhole(amount: number): string {
 export function Forecast() {
   const { month: selectedMonth, range, setMonth: setSelectedMonth, setRange } = useMonthParam(getNextMonth(getCurrentMonth()));
 
-  // Fetch last 3 months of transactions relative to selectedMonth
-  const month1 = getPreviousMonth(selectedMonth);
-  const month2 = getPreviousMonth(month1);
-  const month3 = getPreviousMonth(month2);
+  // Fetch last 12 months of transactions for averaging
+  const historicalMonths = useMemo(() => {
+    const months: string[] = [];
+    let m = getPreviousMonth(selectedMonth);
+    for (let i = 0; i < 12; i++) {
+      months.push(m);
+      m = getPreviousMonth(m);
+    }
+    return months;
+  }, [selectedMonth]);
 
-  const { data: tx1 } = useApi(() => api.getTransactions({ month: month1 }), [selectedMonth]);
-  const { data: tx2 } = useApi(() => api.getTransactions({ month: month2 }), [selectedMonth]);
-  const { data: tx3 } = useApi(() => api.getTransactions({ month: month3 }), [selectedMonth]);
+  const { data: allHistoricalTx } = useApi(async () => {
+    const results = await Promise.all(historicalMonths.map(m => api.getTransactions({ month: m })));
+    return results.flat();
+  }, [selectedMonth]);
+
+  // Most recent month (for fixed costs reference)
+  const recentMonth = historicalMonths[0];
+  const { data: recentTx } = useApi(() => api.getTransactions({ month: recentMonth }), [recentMonth]);
+
   const { data: categories } = useApi(() => api.getCategories(), []);
   const { data: savedBudgets } = useApi(() => api.getBudgets(selectedMonth), [selectedMonth]);
 
   const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
-  const allTransactions = useMemo(() => [...(tx1 || []), ...(tx2 || []), ...(tx3 || [])], [tx1, tx2, tx3]);
-
   const categoryMap = useMemo(() => new Map(categories?.map(c => [c.id, c]) || []), [categories]);
 
   // Calculate fixed costs (categories marked as fixed)
   const fixedCosts = useMemo(() => {
-    if (!tx1 || !categories) return [];
+    if (!recentTx || !categories) return [];
 
-    // Get categories marked as fixed
     const fixedCategories = categories.filter(c => c.isFixed && c.parentId);
 
     return fixedCategories.map(cat => {
-      // Sum this category's transactions from most recent month
-      const total = tx1
+      const total = recentTx
         .filter(t => t.direction === "expense" && t.categoryId === cat.id)
         .reduce((s, t) => s + t.amount, 0);
 
@@ -48,46 +56,71 @@ export function Forecast() {
         id: cat.id, key: `fixed-${cat.id}`, name: cat.name, amount: Math.round(savedAmount ?? total), type: "fixed" as const,
       };
     }).filter(c => c.amount > 0 || savedBudgets?.find(b => b.categoryId === c.id));
-  }, [tx1, categories, savedBudgets]);
+  }, [recentTx, categories, savedBudgets]);
 
-  // Calculate variable costs — ALL expense categories with 3-month average
+  // Calculate variable costs — 12-month average with outlier trimming (95% rule)
   const variableCosts = useMemo(() => {
-    const nonRecurring = allTransactions.filter(t => !t.isRecurring && t.direction === "expense" && t.categoryId);
-    const grouped = new Map<number, number[]>();
-    nonRecurring.forEach(t => {
-      const arr = grouped.get(t.categoryId!) || [];
-      arr.push(t.amount);
-      grouped.set(t.categoryId!, arr);
-    });
+    if (!allHistoricalTx || !categories) return [];
 
-    const monthCount = [tx1, tx2, tx3].filter(t => t && t.length > 0).length || 1;
-
-    // Get ALL leaf expense categories (not just ones with transactions)
-    const allExpenseCategories = categories
-      ?.filter(c => c.parentId && c.type === "expense" && c.isActive) || [];
-
-    // Exclude categories already in fixedCosts
+    // Get ALL leaf expense categories (not fixed)
     const fixedCatIds = new Set(fixedCosts.map(f => f.id));
+    const allExpenseCategories = categories
+      .filter(c => c.parentId && c.type === "expense" && c.isActive && !c.isFixed)
+      .filter(cat => !fixedCatIds.has(cat.id));
 
-    return allExpenseCategories
-      .filter(cat => !fixedCatIds.has(cat.id))
-      .map(cat => {
-        const amounts = grouped.get(cat.id) || [];
-        const total = amounts.reduce((s, a) => s + a, 0);
-        const avg = Math.round(total / monthCount);
-        const savedAmount = savedBudgets?.find(b => b.categoryId === cat.id)?.budgetAmount;
-        return { id: cat.id, key: `variable-${cat.id}`, name: cat.name, amount: Math.round(savedAmount ?? avg), type: "variable" as const };
-      })
-      .sort((a, b) => b.amount - a.amount);
-  }, [allTransactions, categories, categoryMap, tx1, tx2, tx3, savedBudgets, fixedCosts]);
+    // Group transactions by month per category
+    return allExpenseCategories.map(cat => {
+      // Get monthly totals for this category
+      const monthlyTotals = new Map<string, number>();
+      allHistoricalTx
+        .filter(t => t.direction === "expense" && t.categoryId === cat.id)
+        .forEach(t => {
+          const m = t.transactionDate.slice(0, 7);
+          monthlyTotals.set(m, (monthlyTotals.get(m) || 0) + t.amount);
+        });
 
-  // Projected income (average of last 3 months)
+      const values = Array.from(monthlyTotals.values()).sort((a, b) => a - b);
+
+      let avg = 0;
+      if (values.length >= 4) {
+        // Trim top and bottom (95% rule — remove highest and lowest)
+        const trimmed = values.slice(1, -1);
+        avg = Math.round(trimmed.reduce((s, v) => s + v, 0) / trimmed.length);
+      } else if (values.length > 0) {
+        // Not enough data to trim — simple average
+        avg = Math.round(values.reduce((s, v) => s + v, 0) / values.length);
+      }
+
+      const savedAmount = savedBudgets?.find(b => b.categoryId === cat.id)?.budgetAmount;
+      return {
+        id: cat.id,
+        key: `variable-${cat.id}`,
+        name: cat.name,
+        avg,
+        amount: Math.round(savedAmount ?? 0),
+        type: "variable" as const,
+      };
+    }).sort((a, b) => b.avg - a.avg);
+  }, [allHistoricalTx, categories, savedBudgets, fixedCosts]);
+
+  // Projected income (12-month average with trimming)
   const projectedIncome = useMemo(() => {
-    const incomeTransactions = allTransactions.filter(t => t.direction === "income");
-    const monthCount = [tx1, tx2, tx3].filter(t => t && t.length > 0).length || 1;
-    const total = incomeTransactions.reduce((s, t) => s + t.amount, 0);
-    return Math.round(total / monthCount);
-  }, [allTransactions, tx1, tx2, tx3]);
+    if (!allHistoricalTx) return 0;
+    const monthlyIncome = new Map<string, number>();
+    allHistoricalTx
+      .filter(t => t.direction === "income")
+      .forEach(t => {
+        const m = t.transactionDate.slice(0, 7);
+        monthlyIncome.set(m, (monthlyIncome.get(m) || 0) + t.amount);
+      });
+    const values = Array.from(monthlyIncome.values()).sort((a, b) => a - b);
+    if (values.length >= 4) {
+      const trimmed = values.slice(1, -1);
+      return Math.round(trimmed.reduce((s, v) => s + v, 0) / trimmed.length);
+    }
+    if (values.length > 0) return Math.round(values.reduce((s, v) => s + v, 0) / values.length);
+    return 0;
+  }, [allHistoricalTx]);
 
   // Get value (with override support)
   const getValue = (key: string, defaultAmount: number) => {
@@ -110,7 +143,7 @@ export function Forecast() {
       })),
       ...variableCosts.map(item => ({
         categoryId: item.id,
-        budgetAmount: getValue(item.key, item.amount),
+        budgetAmount: getValue(item.key, 0),
         isFixed: false,
       })),
     ];
@@ -137,16 +170,18 @@ export function Forecast() {
 
   // Calculate totals (multiplied by period length)
   const totalFixed = fixedCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0) * monthsInPeriod;
-  const totalVariable = variableCosts.reduce((s, c) => s + getValue(c.key, c.amount), 0) * monthsInPeriod;
+  const totalVariableAvg = variableCosts.reduce((s, c) => s + c.avg, 0);
+  const totalVariableBudget = variableCosts.reduce((s, c) => s + getValue(c.key, 0), 0);
   const projectedIncomeTotal = projectedIncome * monthsInPeriod;
-  const remaining = projectedIncomeTotal - totalFixed - totalVariable;
+  const remainingFromAvg = projectedIncomeTotal - totalFixed - totalVariableAvg * monthsInPeriod;
+  const remainingFromBudget = projectedIncomeTotal - totalFixed - totalVariableBudget * monthsInPeriod;
 
-  const loading = !tx1 || !categories;
+  const loading = !recentTx || !categories;
 
   if (loading) return <div className="p-6 text-stone-500">Loading...</div>;
 
   // Empty state
-  if (allTransactions.length === 0) {
+  if (!allHistoricalTx || allHistoricalTx.length === 0) {
     return (
       <div className="p-6">
         <h2 className="text-xl font-medium text-stone-900 mb-4">Forecast</h2>
@@ -198,10 +233,10 @@ export function Forecast() {
           Remaining after fixed costs{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
         </p>
         <p className="text-4xl font-light mt-1 tabular-nums text-stone-900">
-          {formatCurrency(remaining)}
+          {formatCurrency(projectedIncomeTotal - totalFixed)}
         </p>
         <p className="text-xs text-stone-400 mt-1">
-          {formatCurrency(projectedIncomeTotal)} income − {formatCurrency(totalFixed)} fixed − {formatCurrency(totalVariable)} variable
+          {formatCurrency(projectedIncomeTotal)} income − {formatCurrency(totalFixed)} fixed
         </p>
       </div>
 
@@ -248,8 +283,8 @@ export function Forecast() {
         {/* Variable costs */}
         <div className="bg-white border border-stone-100 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-base font-medium text-stone-600">Variable costs (avg)</h3>
-            <span className="text-sm font-semibold text-stone-900">{formatCurrency(totalVariable)}</span>
+            <h3 className="text-base font-medium text-stone-600">Variable costs</h3>
+            <span className="text-sm text-stone-400">avg: {formatCurrencyWhole(totalVariableAvg)}</span>
           </div>
           <div className="space-y-2">
             {variableCosts.slice(0, 10).map(item => (
@@ -257,25 +292,23 @@ export function Forecast() {
                 <span className="text-sm text-stone-600">{item.name}</span>
                 {isMultiMonth ? (
                   <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <span className="text-xs text-stone-400">Projected</span>
-                      <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, item.amount) * monthsInPeriod)}</p>
-                    </div>
-                    {savedBudgets?.find(b => b.categoryId === item.id) && (
-                      <div className="text-right">
-                        <span className="text-xs text-stone-400">Target</span>
-                        <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(savedBudgets.find(b => b.categoryId === item.id)!.budgetAmount * monthsInPeriod)}</p>
-                      </div>
+                    <span className="text-sm tabular-nums text-stone-400">{formatCurrencyWhole(item.avg * monthsInPeriod)}</span>
+                    {getValue(item.key, 0) > 0 && (
+                      <span className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, 0) * monthsInPeriod)}</span>
                     )}
                   </div>
                 ) : (
-                  <input
-                    type="number"
-                    value={getValue(item.key, item.amount)}
-                    onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                    onBlur={handleSave}
-                    className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
-                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm tabular-nums text-stone-400 w-16 text-right">{formatCurrencyWhole(item.avg)}</span>
+                    <input
+                      type="number"
+                      value={getValue(item.key, 0)}
+                      onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
+                      onBlur={handleSave}
+                      placeholder="0"
+                      className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900 placeholder:text-stone-300"
+                    />
+                  </div>
                 )}
               </div>
             ))}
@@ -283,7 +316,7 @@ export function Forecast() {
           </div>
         </div>
 
-        {/* Savings & summary */}
+        {/* Summary */}
         <div className="bg-white border border-stone-100 rounded-lg p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="text-base font-medium text-stone-600">Summary</h3>
@@ -297,18 +330,18 @@ export function Forecast() {
               <span className="text-stone-600">Fixed costs</span>
               <span className="font-medium text-stone-900">−{formatCurrency(totalFixed)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-stone-600">Variable costs</span>
-              <span className="font-medium text-stone-900">−{formatCurrency(totalVariable)}</span>
-            </div>
-            <div className="border-t border-stone-100 pt-2 flex justify-between">
-              <span className="font-medium text-stone-600">Projected surplus</span>
-              <span className="font-bold text-stone-900">
-                {formatCurrency(remaining)}
-              </span>
+            <div className="border-t border-stone-100 pt-2 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-stone-400">Based on average</span>
+                <span className="tabular-nums text-stone-600">{formatCurrency(projectedIncomeTotal - totalFixed - totalVariableAvg * monthsInPeriod)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-stone-600">Based on your budget</span>
+                <span className="font-bold tabular-nums text-stone-900">{formatCurrency(projectedIncomeTotal - totalFixed - totalVariableBudget * monthsInPeriod)}</span>
+              </div>
             </div>
             <div className="border-t border-stone-100 pt-2 text-xs text-stone-400">
-              Based on {[tx1, tx2, tx3].filter(t => t && t.length > 0).length} months of data
+              Based on 12-month average (outliers excluded)
             </div>
           </div>
         </div>
