@@ -63,6 +63,18 @@ Mark as recurring (isRecurring: true):
 - Housing fees (VvE)
 - Health insurance (Zilveren Kruis)
 
+CATEGORY GUIDANCE (avoid common mistakes):
+- Swimming pools (Gem Adam Zwembaden), climbing gyms (Klimmuur, Monk Bouldergym) → Fitness, NOT Entertainment
+- Uber, UBER TRIP (rides) → Public Transport, NOT Entertainment
+- Uber Eats, food delivery → Dining, NOT Entertainment or Transport
+- Camping, hotels, KLM flights, SnappCar → Travel, NOT Entertainment or Miscellaneous
+- Geldmaat (ATM withdrawals) → Bank Fees, NOT Miscellaneous
+- Kruidvat, Etos (drugstores) → Personal Care, NOT Groceries
+- Restaurant/takeaway (ENKACinar, Blin, Onigiri) → Dining, NOT Groceries
+- HEMA, IKEA, Intratuin → Online Shopping or Housing, NOT Groceries
+- Klarna is a payment method — categorise by what was likely purchased (usually Online Shopping)
+- Miscellaneous should ONLY be used for genuinely unidentifiable transactions
+
 DUTCH BANKING PATTERNS:
 - "BEA" = pin terminal payment (in-store purchase)
 - "eCom" = online card payment
