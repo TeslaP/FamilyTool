@@ -48,7 +48,6 @@
 - AI references signals only when genuinely notable
 
 ### Remaining (next to build)
-- **Monthly phrases on month navigation** — show temporal reflection in MonthSelector dropdown when hovering/selecting months
 - **Session history integrated visually into Detail mode** — condensed session notes alongside financial sections
 - **Intention carry-over** — surface unmet recurring intentions ("You mentioned X in March and April...")
 - **AI prompt tuning** (ongoing practice, not a single build)
