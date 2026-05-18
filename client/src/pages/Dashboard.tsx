@@ -359,7 +359,7 @@ function OverviewMode({
           <span>Expenses: <span className="font-medium text-stone-600">{formatCurrency(totalExpenses)}</span></span>
           <span><span className="font-medium text-stone-600">{savingsRate}%</span> saved</span>
         </div>
-        <TemporalReflectionBlock from={month} to={month} variant="subtle" />
+        {!lastSession && <TemporalReflectionBlock from={month} to={month} variant="subtle" />}
       </div>
 
       {/* Category grid */}
@@ -443,8 +443,8 @@ function DetailMode({
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
 
-      {/* 1. Session reflection — collapsible interpretation */}
-      {lastSession && (
+      {/* 1. Reflection — interpretation layer */}
+      {lastSession ? (
         <section>
           <button
             onClick={() => setReflectionOpen(!reflectionOpen)}
@@ -477,6 +477,15 @@ function DetailMode({
             className="text-sm text-stone-300 hover:text-stone-500 transition-colors mt-3"
           >
             Continue reflection &rarr;
+          </button>
+        </section>
+      ) : (
+        <section>
+          <button
+            onClick={onReflect}
+            className="text-sm text-stone-300 hover:text-stone-500 transition-colors"
+          >
+            Reflect on this month &rarr;
           </button>
         </section>
       )}
