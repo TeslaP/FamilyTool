@@ -298,6 +298,7 @@ export function Dashboard() {
           range={range}
           lastSession={lastSession}
           initialReflectionOpen={openReflection}
+          onReflect={handleStartSession}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
         </div>
@@ -421,6 +422,7 @@ function DetailMode({
   range,
   lastSession,
   initialReflectionOpen,
+  onReflect,
   onCategoryClick,
 }: {
   totalIncome: number;
@@ -432,6 +434,7 @@ function DetailMode({
   range?: MonthRange | null;
   lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
   initialReflectionOpen?: boolean;
+  onReflect: () => void;
   onCategoryClick: (id: number) => void;
 }) {
   const isSingleMonth = !range;
@@ -469,6 +472,12 @@ function DetailMode({
               )}
             </div>
           )}
+          <button
+            onClick={onReflect}
+            className="text-sm text-stone-300 hover:text-stone-500 transition-colors mt-3"
+          >
+            Continue reflection &rarr;
+          </button>
         </section>
       )}
 
