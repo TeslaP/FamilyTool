@@ -130,6 +130,7 @@ export function Dashboard() {
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [openReflection, setOpenReflection] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => { setIsTransitioning(false); }, []);
@@ -294,7 +295,7 @@ export function Dashboard() {
           summaryLoading={summaryLoading}
           onGenerateSummary={handleGenerateSummary}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
-          onSwitchToDetail={() => setMode("detail")}
+          onSwitchToDetail={() => { setMode("detail"); setOpenReflection(true); }}
           lastSession={lastSession}
           onReflect={handleStartSession}
         />
@@ -314,6 +315,7 @@ export function Dashboard() {
           month={month}
           range={range}
           lastSession={lastSession}
+          initialReflectionOpen={openReflection}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
         </div>
@@ -440,6 +442,7 @@ function DetailMode({
   month,
   range,
   lastSession,
+  initialReflectionOpen,
   onCategoryClick,
 }: {
   totalIncome: number;
@@ -454,10 +457,11 @@ function DetailMode({
   month: string;
   range?: MonthRange | null;
   lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
+  initialReflectionOpen?: boolean;
   onCategoryClick: (id: number) => void;
 }) {
   const isSingleMonth = !range;
-  const [reflectionOpen, setReflectionOpen] = useState(false);
+  const [reflectionOpen, setReflectionOpen] = useState(initialReflectionOpen || false);
 
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
