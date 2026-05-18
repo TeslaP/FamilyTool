@@ -253,18 +253,7 @@ export function Forecast() {
               <div key={item.key} className="flex items-center justify-between">
                 <span className="text-sm text-stone-600">{item.name}</span>
                 {isMultiMonth ? (
-                  <div className="flex items-center gap-3">
-                    <div className="text-right">
-                      <span className="text-xs text-stone-400">Projected</span>
-                      <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, item.amount) * monthsInPeriod)}</p>
-                    </div>
-                    {savedBudgets?.find(b => b.categoryId === item.id) && (
-                      <div className="text-right">
-                        <span className="text-xs text-stone-400">Target</span>
-                        <p className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(savedBudgets.find(b => b.categoryId === item.id)!.budgetAmount * monthsInPeriod)}</p>
-                      </div>
-                    )}
-                  </div>
+                  <span className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, item.amount) * monthsInPeriod)}</span>
                 ) : (
                   <input
                     type="number"
@@ -291,12 +280,7 @@ export function Forecast() {
               <div key={item.key} className="flex items-center justify-between">
                 <span className="text-sm text-stone-600">{item.name}</span>
                 {isMultiMonth ? (
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm tabular-nums text-stone-400">{formatCurrencyWhole(item.avg * monthsInPeriod)}</span>
-                    {getValue(item.key, 0) > 0 && (
-                      <span className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(getValue(item.key, 0) * monthsInPeriod)}</span>
-                    )}
-                  </div>
+                  <span className="text-sm tabular-nums text-stone-700">{formatCurrencyWhole(item.avg * monthsInPeriod)}</span>
                 ) : (
                   <div className="flex items-center gap-3">
                     <span className="text-sm tabular-nums text-stone-400 w-16 text-right">{formatCurrencyWhole(item.avg)}</span>
