@@ -313,6 +313,7 @@ export function Dashboard() {
           onGenerateSummary={handleGenerateSummary}
           month={month}
           range={range}
+          lastSession={lastSession}
           onCategoryClick={(id) => navigate(`/drilldown?month=${month}&category=${id}`)}
         />
         </div>
@@ -398,11 +399,11 @@ function OverviewMode({
           <div className="max-w-lg mx-auto">
             <button
               onClick={onSwitchToDetail}
-              className="font-editorial text-sm text-stone-400 italic leading-relaxed hover:text-stone-600 transition-colors cursor-pointer"
+              className="font-editorial text-sm text-stone-400 italic leading-relaxed hover:text-stone-600 transition-colors cursor-pointer line-clamp-2"
             >
               {lastSession.aiReflection.split("\n\n")[0]}
             </button>
-            <div className="mt-3">
+            <div className="mt-2">
               <button
                 onClick={onReflect}
                 className="font-editorial text-xs text-stone-300 italic hover:text-stone-500 transition-colors"
@@ -438,6 +439,7 @@ function DetailMode({
   onGenerateSummary,
   month,
   range,
+  lastSession,
   onCategoryClick,
 }: {
   totalIncome: number;
@@ -451,12 +453,46 @@ function DetailMode({
   onGenerateSummary: () => void;
   month: string;
   range?: MonthRange | null;
+  lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
   onCategoryClick: (id: number) => void;
 }) {
   const isSingleMonth = !range;
+  const [reflectionOpen, setReflectionOpen] = useState(false);
 
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
+
+      {/* Session reflection — collapsible at top */}
+      {lastSession && (
+        <section>
+          <button
+            onClick={() => setReflectionOpen(!reflectionOpen)}
+            className="w-full text-left"
+          >
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm text-stone-400">{formatMonth(month)} reflection</h3>
+              <span className="text-xs text-stone-300">{reflectionOpen ? "collapse" : "expand"}</span>
+            </div>
+            {!reflectionOpen && (
+              <p className="font-editorial text-sm text-stone-400 italic mt-2 line-clamp-2 leading-relaxed">
+                {lastSession.aiReflection.split("\n\n")[0]}
+              </p>
+            )}
+          </button>
+          {reflectionOpen && (
+            <div className="mt-3 font-editorial text-base text-stone-600 italic leading-relaxed space-y-3">
+              {lastSession.aiReflection.split("\n\n").filter(Boolean).map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+              {lastSession.closingNote && (
+                <p className="text-sm text-stone-400 not-italic mt-4 pt-3 border-t border-stone-100">
+                  Note: {lastSession.closingNote}
+                </p>
+              )}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Section 1: Monthly metrics (always shown) */}
       <FadeInSection>
