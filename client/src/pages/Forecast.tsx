@@ -24,6 +24,7 @@ export function Forecast() {
   const { data: savedBudgets } = useApi(() => api.getBudgets(selectedMonth), [selectedMonth]);
 
   const [overrides, setOverrides] = useState<Map<string, number>>(new Map());
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved">("idle");
 
   const allTransactions = useMemo(() => [...(tx1 || []), ...(tx2 || []), ...(tx3 || [])], [tx1, tx2, tx3]);
 
@@ -93,8 +94,8 @@ export function Forecast() {
     setOverrides(next);
   };
 
-  // Auto-save on blur
-  const handleBlur = useCallback(async () => {
+  // Save budgets
+  const handleSave = useCallback(async () => {
     const allBudgets = [
       ...fixedCosts.map(item => ({
         categoryId: item.id,
@@ -108,9 +109,12 @@ export function Forecast() {
       })),
     ];
     try {
+      setSaveStatus("saving");
       await api.saveBudgets(selectedMonth, allBudgets);
+      setSaveStatus("saved");
+      setTimeout(() => setSaveStatus("idle"), 2000);
     } catch {
-      // Silently fail — user can retry
+      setSaveStatus("idle");
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fixedCosts, variableCosts, overrides, selectedMonth]);
@@ -187,7 +191,7 @@ export function Forecast() {
         <p className="text-sm text-stone-400 font-normal">
           Remaining after fixed costs{monthsInPeriod > 1 ? ` (${monthsInPeriod} months)` : ""}
         </p>
-        <p className={cn("text-4xl font-light mt-1 tabular-nums", remaining >= 0 ? "text-stone-900" : "text-red-600")}>
+        <p className="text-4xl font-light mt-1 tabular-nums text-stone-900">
           {formatCurrency(remaining)}
         </p>
         <p className="text-xs text-stone-400 mt-1">
@@ -225,7 +229,7 @@ export function Forecast() {
                     type="number"
                     value={getValue(item.key, item.amount)}
                     onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                    onBlur={handleBlur}
+                    onBlur={handleSave}
                     className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
                   />
                 )}
@@ -263,7 +267,7 @@ export function Forecast() {
                     type="number"
                     value={getValue(item.key, item.amount)}
                     onChange={(e) => setOverride(item.key, Number(e.target.value) || 0)}
-                    onBlur={handleBlur}
+                    onBlur={handleSave}
                     className="w-20 text-right text-sm tabular-nums border border-stone-200 rounded px-2 py-0.5 focus:outline-none focus:ring-1 focus:ring-stone-900"
                   />
                 )}
@@ -293,7 +297,7 @@ export function Forecast() {
             </div>
             <div className="border-t border-stone-100 pt-2 flex justify-between">
               <span className="font-medium text-stone-600">Projected surplus</span>
-              <span className={cn("font-bold", remaining >= 0 ? "text-green-600" : "text-red-600")}>
+              <span className="font-bold text-stone-900">
                 {formatCurrency(remaining)}
               </span>
             </div>
@@ -302,6 +306,18 @@ export function Forecast() {
             </div>
           </div>
         </div>
+
+        {/* Save button (single month only) */}
+        {!isMultiMonth && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleSave}
+              className="px-6 py-2 text-sm bg-stone-700 text-white rounded-lg hover:bg-stone-600 transition-colors"
+            >
+              {saveStatus === "saving" ? "Saving..." : saveStatus === "saved" ? "Saved" : "Save budget"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
