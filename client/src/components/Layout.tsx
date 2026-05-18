@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { NavLink, Outlet, useLocation } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
-import { LayoutDashboard, Upload, CheckSquare, TrendingUp, BookOpen, LogOut } from "lucide-react";
+import { LayoutDashboard, Upload, CheckSquare, TrendingUp, BookOpen, MessageCircle, LogOut } from "lucide-react";
 import { HorizonLogo } from "./HorizonLogo";
 import { AiStatusBar } from "./AiStatusBar";
 import { cn, getCurrentMonth, getSeason } from "../lib/utils";
@@ -64,6 +64,14 @@ export function Layout() {
             </NavTooltip>
           ))}
         </nav>
+        <NavTooltip label="Feedback">
+          <a
+            href="mailto:paveltess@gmail.com?subject=FamilyTool%20feedback"
+            className="w-9 h-9 flex items-center justify-center rounded-full text-stone-400 hover:text-white hover:bg-stone-800/80"
+          >
+            <MessageCircle size={16} />
+          </a>
+        </NavTooltip>
         <NavTooltip label="Sign out">
           <button
             onClick={logout}
