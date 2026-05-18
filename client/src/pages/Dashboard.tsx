@@ -34,7 +34,7 @@ function WeeklyPacingSection({ month }: { month: string }) {
 
   return (
     <section>
-      <h3 className="text-base font-medium text-stone-700 mb-4">Weekly pacing</h3>
+      <h3 className="text-sm font-medium text-stone-700 mb-4">Weekly pacing</h3>
       <div className="space-y-2 mb-4">
         {weeks.map((week: any, i: number) => (
           <div key={week.weekNum} className="flex items-center gap-3 text-sm">
@@ -49,7 +49,7 @@ function WeeklyPacingSection({ month }: { month: string }) {
           </div>
         ))}
       </div>
-      <p className="text-xs text-stone-400">
+      <p className="text-sm text-stone-400">
         Projected month-end: {formatCurrency(projection.remaining)} &middot; <span className={trendColor}>{projection.trend}</span>
       </p>
     </section>
@@ -77,7 +77,7 @@ function TrajectorySection({ year }: { year: number }) {
 
   return (
     <section>
-      <h3 className="text-base font-medium text-stone-700 mb-4">Year trajectory &mdash; {year}</h3>
+      <h3 className="text-sm font-medium text-stone-700 mb-4">Year trajectory &mdash; {year}</h3>
 
       {/* Savings progress */}
       {(totals.investmentGoal > 0 || totals.savingsGoal > 0) && (
@@ -195,20 +195,6 @@ export function Dashboard() {
     .sort((a, b) => b.amount - a.amount)
     .slice(0, 8);
 
-  // Top merchants
-  const merchantTotals = new Map<string, number>();
-  transactions
-    ?.filter((t) => t.direction === "expense" && t.merchantName)
-    .forEach((t) => {
-      merchantTotals.set(
-        t.merchantName!,
-        (merchantTotals.get(t.merchantName!) || 0) + t.amount
-      );
-    });
-  const topMerchants = Array.from(merchantTotals.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5);
-
   const handleGenerateSummary = async () => {
     setSummaryLoading(true);
     try {
@@ -308,10 +294,6 @@ export function Dashboard() {
           netCashflow={netCashflow}
           savingsRate={savingsRate}
           chartData={chartData}
-          topMerchants={topMerchants}
-          summary={summary}
-          summaryLoading={summaryLoading}
-          onGenerateSummary={handleGenerateSummary}
           month={month}
           range={range}
           lastSession={lastSession}
@@ -401,14 +383,14 @@ function OverviewMode({
           <div className="max-w-lg mx-auto">
             <button
               onClick={onSwitchToDetail}
-              className="font-editorial text-sm text-stone-400 italic leading-relaxed hover:text-stone-600 transition-colors cursor-pointer line-clamp-2"
+              className="font-editorial text-sm text-stone-400 leading-relaxed hover:text-stone-600 transition-colors cursor-pointer line-clamp-2"
             >
               {lastSession.aiReflection.split("\n\n")[0]}
             </button>
             <div className="mt-2">
               <button
                 onClick={onReflect}
-                className="font-editorial text-xs text-stone-300 italic hover:text-stone-500 transition-colors"
+                className="font-editorial text-sm text-stone-300 hover:text-stone-500 transition-colors"
               >
                 Continue reflection &rarr;
               </button>
@@ -417,7 +399,7 @@ function OverviewMode({
         ) : (
           <button
             onClick={onReflect}
-            className="font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
+            className="font-editorial text-sm text-stone-300 hover:text-stone-500 transition-colors"
           >
             Reflect on this month &rarr;
           </button>
@@ -435,10 +417,6 @@ function DetailMode({
   netCashflow,
   savingsRate,
   chartData,
-  topMerchants,
-  summary,
-  summaryLoading,
-  onGenerateSummary,
   month,
   range,
   lastSession,
@@ -450,10 +428,6 @@ function DetailMode({
   netCashflow: number;
   savingsRate: number;
   chartData: { name: string; amount: number; id: number }[];
-  topMerchants: [string, number][];
-  summary: string | null;
-  summaryLoading: boolean;
-  onGenerateSummary: () => void;
   month: string;
   range?: MonthRange | null;
   lastSession?: { aiReflection: string; closingNote?: string; createdAt: string } | null;
@@ -466,7 +440,7 @@ function DetailMode({
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
 
-      {/* Session reflection — collapsible at top */}
+      {/* 1. Session reflection — collapsible interpretation */}
       {lastSession && (
         <section>
           <button
@@ -474,22 +448,22 @@ function DetailMode({
             className="w-full text-left"
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-sm text-stone-400">{formatMonth(month)} reflection</h3>
-              <span className="text-xs text-stone-300">{reflectionOpen ? "collapse" : "expand"}</span>
+              <h3 className="text-sm font-medium text-stone-700">{formatMonth(month)} reflection</h3>
+              <span className="text-sm text-stone-400">{reflectionOpen ? "collapse" : "expand"}</span>
             </div>
             {!reflectionOpen && (
-              <p className="font-editorial text-sm text-stone-400 italic mt-2 line-clamp-2 leading-relaxed">
+              <p className="font-editorial text-base text-stone-500 mt-2 line-clamp-2 leading-relaxed">
                 {lastSession.aiReflection.split("\n\n")[0]}
               </p>
             )}
           </button>
           {reflectionOpen && (
-            <div className="mt-3 font-editorial text-base text-stone-600 italic leading-relaxed space-y-3">
+            <div className="mt-3 font-editorial text-base text-stone-500 leading-relaxed space-y-3">
               {lastSession.aiReflection.split("\n\n").filter(Boolean).map((p, i) => (
                 <p key={i}>{p}</p>
               ))}
               {lastSession.closingNote && (
-                <p className="text-sm text-stone-400 not-italic mt-4 pt-3 border-t border-stone-100">
+                <p className="text-sm text-stone-400 mt-4 pt-3 border-t border-stone-100">
                   Note: {lastSession.closingNote}
                 </p>
               )}
@@ -498,7 +472,7 @@ function DetailMode({
         </section>
       )}
 
-      {/* Section 1: Monthly metrics (always shown) */}
+      {/* 2. Metrics — headline numbers */}
       <FadeInSection>
         <div className="grid grid-cols-4 gap-3">
           <MetricCard label="Income" value={formatCurrency(totalIncome)} />
@@ -508,20 +482,15 @@ function DetailMode({
         </div>
       </FadeInSection>
 
-      {/* Temporal Reflection */}
-      <FadeInSection>
-        <TemporalReflectionBlock from={range?.from || month} to={range?.to || month} variant="prominent" />
-      </FadeInSection>
-
-      {/* Section 2: Weekly Pacing (only for single month) */}
+      {/* 3. Weekly pacing — rhythm (only for single month) */}
       {isSingleMonth && <FadeInSection><WeeklyPacingSection month={month} /></FadeInSection>}
 
-      {/* Section 3: Category Breakdown */}
+      {/* 4. Categories — where the money went */}
       <FadeInSection>
-        <h3 className="text-base font-medium text-stone-700 mb-4">Spending by category</h3>
+        <h3 className="text-sm font-medium text-stone-700 mb-4">Spending by category</h3>
         <div className="grid grid-cols-4 gap-4">
           {chartData.map(cat => (
-            <button key={cat.id} onClick={() => onCategoryClick(cat.id)} className="bg-white border border-stone-50 rounded-xl p-4 text-center hover:shadow-card transition-all">
+            <button key={cat.id} onClick={() => onCategoryClick(cat.id)} className="py-3 px-4 rounded-lg hover:bg-stone-100/50 transition-colors text-center">
               <p className="text-sm text-stone-400 mb-1">{cat.name}</p>
               <p className="text-lg font-medium text-stone-700">{formatCurrency(cat.amount)}</p>
             </button>
@@ -529,35 +498,8 @@ function DetailMode({
         </div>
       </FadeInSection>
 
-      {/* Section 4: Top Merchants */}
-      {topMerchants.length > 0 && (
-        <FadeInSection>
-          <h3 className="text-base font-medium text-stone-700 mb-4">Top merchants</h3>
-          <div className="bg-white border border-stone-100 rounded-xl divide-y divide-stone-50">
-            {topMerchants.map(([name, amount]) => (
-              <div key={name} className="flex justify-between px-5 py-3">
-                <span className="text-sm text-stone-700">{name}</span>
-                <span className="text-sm font-medium text-stone-900">{formatCurrency(amount)}</span>
-              </div>
-            ))}
-          </div>
-        </FadeInSection>
-      )}
-
-      {/* Section 5: Year Trajectory (always shown) */}
-      <FadeInSection><TrajectorySection year={parseInt(month.split("-")[0])} /></FadeInSection>
-
-      {/* Section 6: Observations */}
-      <FadeInSection className="pb-12">
-        <h3 className="text-base font-medium text-stone-700 mb-4">Observations</h3>
-        {summary ? (
-          <p className="font-editorial text-lg text-stone-600 italic leading-relaxed">{summary}</p>
-        ) : (
-          <button onClick={onGenerateSummary} disabled={summaryLoading} className="font-editorial text-base text-stone-400 italic hover:text-stone-600 transition-colors">
-            {summaryLoading ? "Reflecting..." : "Reflect on this period →"}
-          </button>
-        )}
-      </FadeInSection>
+      {/* 5. Year trajectory — broader context */}
+      <FadeInSection className="pb-12"><TrajectorySection year={parseInt(month.split("-")[0])} /></FadeInSection>
     </div>
   );
 }
