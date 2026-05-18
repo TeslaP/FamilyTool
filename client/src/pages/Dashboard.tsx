@@ -360,14 +360,11 @@ function OverviewMode({
       {/* Hero section */}
       <div className="text-center mb-12">
         <p className="text-lg text-stone-300 mb-4">
-          Available in {formatMonth(month)}
+          {formatMonth(month)} balance
         </p>
         <button
           onClick={onSwitchToDetail}
-          className={cn(
-            "text-[6.5rem] font-light tracking-tight leading-none tabular-nums hover:opacity-80 transition-opacity cursor-pointer",
-            netCashflow >= 0 ? "text-green-700" : "text-red-600"
-          )}
+          className="text-[6.5rem] font-light tracking-tight leading-none tabular-nums text-stone-900 hover:opacity-80 transition-opacity cursor-pointer"
         >
           {formatCurrency(animatedValue)}
         </button>
