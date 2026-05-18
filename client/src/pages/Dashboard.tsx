@@ -394,19 +394,22 @@ function OverviewMode({
 
       {/* Reflect link — anchored to bottom */}
       <div className="absolute bottom-6 left-0 right-0 text-center px-6">
-        {summary ? (
-          <p className="font-editorial text-base text-stone-500 italic max-w-lg mx-auto leading-relaxed">{summary}</p>
-        ) : lastSession ? (
+        {lastSession ? (
           <div className="max-w-lg mx-auto">
-            <p className="font-editorial text-sm text-stone-400 italic leading-relaxed line-clamp-2">
-              {lastSession.aiReflection.split("\n\n")[0]}
-            </p>
             <button
-              onClick={onReflect}
-              className="inline-block mt-2 font-editorial text-base text-stone-300 italic hover:text-stone-500 transition-colors"
+              onClick={onSwitchToDetail}
+              className="font-editorial text-sm text-stone-400 italic leading-relaxed hover:text-stone-600 transition-colors cursor-pointer"
             >
-              Continue reflection &rarr;
+              {lastSession.aiReflection.split("\n\n")[0]}
             </button>
+            <div className="mt-3">
+              <button
+                onClick={onReflect}
+                className="font-editorial text-xs text-stone-300 italic hover:text-stone-500 transition-colors"
+              >
+                Continue reflection &rarr;
+              </button>
+            </div>
           </div>
         ) : (
           <button
