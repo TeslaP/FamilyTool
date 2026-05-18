@@ -443,7 +443,7 @@ function DetailMode({
 }) {
   const isSingleMonth = !range;
   const [reflectionOpen, setReflectionOpen] = useState(initialReflectionOpen || false);
-  const [expandedCategory, setExpandedCategory] = useState<number | null>(null);
+  const [categoryExpanded, setCategoryExpanded] = useState(false);
 
   return (
     <div className="max-w-4xl mx-auto py-8 space-y-12">
@@ -510,111 +510,64 @@ function DetailMode({
 
       {/* 4. Categories — where the money went */}
       <FadeInSection>
-        <h3 className="text-sm font-medium text-stone-700 mb-4">Spending by category</h3>
-        <div className="space-y-1">
-          {chartData.map(cat => (
-            <div key={cat.id}>
-              <button
-                onClick={() => setExpandedCategory(expandedCategory === cat.id ? null : cat.id)}
-                className={cn(
-                  "w-full flex items-center justify-between py-3 px-4 rounded-lg transition-colors",
-                  expandedCategory === cat.id ? "bg-stone-100/50" : "hover:bg-stone-100/30"
-                )}
-              >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-medium text-stone-700">Spending by category</h3>
+          <button
+            onClick={() => setCategoryExpanded(!categoryExpanded)}
+            className="text-sm text-stone-400 hover:text-stone-600 transition-colors"
+          >
+            {categoryExpanded ? "Show summary" : "Show breakdown"}
+          </button>
+        </div>
+
+        {categoryExpanded ? (
+          /* Expanded: all parents with sub-categories */
+          <div className="space-y-6">
+            {chartData.map(cat => {
+              const children = allCategories.filter(c => c.parentId === cat.id);
+              const childTotals = children
+                .map(child => ({
+                  name: child.name,
+                  amount: transactions.filter(t => t.direction === "expense" && t.categoryId === child.id).reduce((s, t) => s + t.amount, 0),
+                }))
+                .filter(c => c.amount > 0)
+                .sort((a, b) => b.amount - a.amount);
+
+              return (
+                <div key={cat.id}>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-sm font-medium text-stone-700">{cat.name}</span>
+                    <span className="text-sm font-medium tabular-nums text-stone-900">{formatCurrency(cat.amount)}</span>
+                  </div>
+                  {childTotals.length > 0 && (
+                    <div className="ml-4 space-y-1 mt-1">
+                      {childTotals.map(child => (
+                        <div key={child.name} className="flex items-center justify-between py-1">
+                          <span className="text-sm text-stone-400">{child.name}</span>
+                          <span className="text-sm tabular-nums text-stone-600">{formatCurrency(child.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          /* Summary: just parent categories */
+          <div className="space-y-1">
+            {chartData.map(cat => (
+              <div key={cat.id} className="flex items-center justify-between py-3 px-4 rounded-lg hover:bg-stone-100/30 transition-colors">
                 <span className="text-sm text-stone-600">{cat.name}</span>
                 <span className="text-sm font-medium tabular-nums text-stone-900">{formatCurrency(cat.amount)}</span>
-              </button>
-
-              {/* Contextual insight card */}
-              {expandedCategory === cat.id && (
-                <CategoryInsightCard
-                  categoryId={cat.id}
-                  transactions={transactions}
-                  allCategories={allCategories}
-                />
-              )}
-            </div>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        )}
       </FadeInSection>
 
       {/* 5. Year trajectory — broader context */}
       <FadeInSection className="pb-12"><TrajectorySection year={parseInt(month.split("-")[0])} /></FadeInSection>
-    </div>
-  );
-}
-
-// --- Contextual Insight Card for Category Expansion ---
-
-function CategoryInsightCard({ categoryId, transactions, allCategories }: {
-  categoryId: number;
-  transactions: Transaction[];
-  allCategories: Category[];
-}) {
-  const category = allCategories.find(c => c.id === categoryId);
-  const isParent = category && !category.parentId;
-
-  // Get relevant transactions
-  let relevantTxs: Transaction[];
-  if (isParent) {
-    const childIds = allCategories.filter(c => c.parentId === categoryId).map(c => c.id);
-    relevantTxs = transactions.filter(t => t.direction === "expense" && childIds.includes(t.categoryId!));
-  } else {
-    relevantTxs = transactions.filter(t => t.direction === "expense" && t.categoryId === categoryId);
-  }
-
-  // Top merchants (max 3)
-  const merchantTotals = new Map<string, number>();
-  relevantTxs.forEach(t => {
-    const name = t.merchantName || "Other";
-    merchantTotals.set(name, (merchantTotals.get(name) || 0) + t.amount);
-  });
-  const topMerchants = Array.from(merchantTotals.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3);
-
-  // Sub-category breakdown (for parent categories)
-  let subCategories: { name: string; amount: number }[] = [];
-  if (isParent) {
-    const children = allCategories.filter(c => c.parentId === categoryId);
-    subCategories = children
-      .map(child => ({
-        name: child.name,
-        amount: relevantTxs.filter(t => t.categoryId === child.id).reduce((s, t) => s + t.amount, 0),
-      }))
-      .filter(c => c.amount > 0)
-      .sort((a, b) => b.amount - a.amount);
-  }
-
-  return (
-    <div className="mx-4 my-2 px-5 py-4 bg-stone-50/80 rounded-xl border border-stone-100/80">
-      {/* Sub-category summary (for parent categories) */}
-      {subCategories.length > 1 && (
-        <div className="flex gap-4 text-sm mb-3">
-          {subCategories.map(sc => (
-            <span key={sc.name} className="text-stone-500">
-              {sc.name} <span className="tabular-nums text-stone-700">{formatCurrency(sc.amount)}</span>
-            </span>
-          ))}
-        </div>
-      )}
-
-      {/* Top merchants */}
-      {topMerchants.length > 0 && (
-        <div className="space-y-1.5">
-          {topMerchants.map(([name, amount]) => (
-            <div key={name} className="flex items-center justify-between text-sm">
-              <span className="text-stone-500">{name}</span>
-              <span className="tabular-nums text-stone-600">{formatCurrency(amount)}</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Transaction count */}
-      <p className="text-xs text-stone-400 mt-3">
-        {relevantTxs.length} transactions
-      </p>
     </div>
   );
 }
